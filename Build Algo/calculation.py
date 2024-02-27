@@ -27,9 +27,11 @@ class DataProcessor:
             return 'high'
 
     #Bar
-    def compare_close_prices(t, t_minus_1):
+    def compare_close_prices(row):
+        t = row['close']
+        t_minus_1 = row['close_t_minus_1']
         if t > t_minus_1:
-            return 'up-bar'  
+            return 'up-bar'
         else:
             return 'down-bar'
 
