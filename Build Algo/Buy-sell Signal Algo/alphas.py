@@ -20,12 +20,14 @@ data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
 data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
 data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
 
+# Pattern of Weakness
+
  # Weakness A
 '''
-- Down bar
-- High volume
-- Medium or low spread
-- Closing in the middle-third or  bottom-third of the bar
+- down bar
+- high volume
+- medium or low spread
+- close: middle-third or bottom-third
 '''
 def is_weakness_a_signal(data):
     if (data['bar_type'] == 'down-bar') and \
@@ -36,25 +38,29 @@ def is_weakness_a_signal(data):
     else:
         return False
 
-# No Demand
+# No Demand - Weakness B
     '''
+    - up bar
+    - volume: low or high
+    - spread: low
+    - close: bottom-third and middle-third
     '''
-def is_nodemand_signal(data):
+def is_no_demand_signal(data):
     if (data['bar_type'] == 'up-bar') and \
         ((data['OBV_label']=='high') or (data['OBV_label']=='low')) and \
-        ((data['label_spread'] == 'low') or (data['label_spread']=='high')) and \
-        ((data['close_bar_label'] == 'bottom-third') ):
+        (data['label_spread'] == 'low') and \
+        ((data['close_bar_label'] == 'bottom-third') or data['close_bar_label'] == 'middle-third'):
         return True
     else:
         return False
     
 
-# Up Trust
+# Up-trust - Pseudo Up-trust
     '''
-    - Up bar or down bar (This bar must update the local maximum and its maximum should not be redrawn)
-    - Spread high
-    - The closing should be in the lower third
-    - Volume is high or very high
+    - up bar or down bar 
+    - high spread
+    - close: bottom-third
+    - high or low volume
     '''
 
 def is_up_trust_signal(data):
@@ -75,6 +81,72 @@ def is_stop_volume_signal(data):
     if (data['bar_type']=='up-bar') and \
         (data['OBV_label']=='high') and \
         (data['label_spread'] == 'high'):
+        return True
+    else:
+        return False
+    
+# Power pattern
+
+# Power A
+    '''
+    - up bar
+    - medium spread
+    - medium or high volume
+    - close: top-third
+    '''
+def is_power_A_signal(data):
+    if (data['bar_type'] == 'up-bar') and \
+        (data['label_spread'] == 'medium') and \
+        ((data['OBV_label']=='medium') or (data['OBV_label'] == 'low')) and \
+        (data['close_bar_label'] == 'top-third'):
+        return True
+    else:
+        return False
+    
+# Power B - Lack of order
+    '''
+    - down bar 
+    - low spread 
+    - low or high volume
+    - close: top-third or bottom-third
+    '''
+def is_power_B_signal(data):
+    if (data['bar_type'] == 'down-bar') and \
+        (data['label_spread'] == 'low') and \
+        ((data['OBV_label']=='low') or (data['OBV_label'] == 'high')) and \
+        ((data['close_bar_label'] == 'top-third') or (data['close_bar_label'] == 'bottom-third')):
+        return True
+    else:
+        return False
+
+# Reverse Up-Trust - Pseudo Up-trust
+    '''
+    - up bar or down bar 
+    - high spread
+    - close: bottom-third
+    - high and low volume
+    '''
+def is_reverse_up_trust_signal(data):
+    if ((data['bar_type'] == 'down-bar') or (data['bar_type']) == 'up-bar') and \
+        (data['label_spread'] == 'high') and \
+        ((data['OBV_label']=='low') or (data['OBV_label'] == 'high')) and \
+        (data['close_bar_label'] == 'bottom-third'):
+        return True
+    else:
+        return False
+    
+# Stopped Volume
+    '''
+    - down bar
+    - low spread
+    - close: middle-third
+    - high volume
+    '''
+def is_stopped_volume_signal(data):
+    if (data['bar_type'] == 'down-bar') and \
+        (data['label_spread'] == 'low') and \
+        (data['OBV_label'] == 'high') and \
+        (data['close_bar_label'] == 'middle-third'):
         return True
     else:
         return False
