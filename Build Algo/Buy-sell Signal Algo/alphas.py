@@ -5,7 +5,7 @@ import vnstock as vn
 import calculation as cal
  
 data = cal.DataProcessor.load_data('VCB')
-data = data.set_index('time')
+# data = data.set_index('time')
 #Tính trung bình 20 phiên gần nhất
 mean_20 = data['volume'].rolling(window=20).mean()
 
