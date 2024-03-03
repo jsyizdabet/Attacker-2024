@@ -3,22 +3,6 @@ import pandas as pd
 import numpy as np
 import vnstock as vn
 import calculation as cal
- 
-data = cal.DataProcessor.load_data('VCB')
-# data = data.set_index('time')
-#Tính trung bình 20 phiên gần nhất
-mean_20 = data['volume'].rolling(window=20).mean()
-
-#Tính on-balance volume\n",
-data['on-balance_volume'] = data['volume']/mean_20
-data['OBV_label'] = data['on-balance_volume'].apply(cal.DataProcessor.label_values)
-
-#Giá đóng cửa ngày t-1
-data['close_t_minus_1'] = data['close'].shift(1)
-data['bar_type'] = data.apply(cal.DataProcessor.compare_close_prices, axis=1)
-data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
-data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
-data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
 
 # Pattern of Weakness
 
@@ -150,3 +134,11 @@ def is_stopped_volume_signal(data):
         return True
     else:
         return False
+    
+def determine_signal(row):
+    if is_weakness_a_signal(row) or is_no_demand_signal(row) or is_up_trust_signal(row) or is_stop_volume_signal(row):
+        return 'Sell'
+    elif is_power_A_signal(row) or is_power_B_signal(row) or is_reverse_up_trust_signal(row) or is_stopped_volume_signal(row):
+        return 'Buy'
+    else:
+        return 'Hold'
