@@ -1,3 +1,5 @@
 env
 ta_lib-0.4.25-cp311-cp311-win_amd64.whl
 vsa.py
+requirements.txt
+stock_venv
