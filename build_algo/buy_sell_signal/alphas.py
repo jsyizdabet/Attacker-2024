@@ -136,9 +136,9 @@ class Alphas():
             return False
         
     def determine_signal(row):
-        if is_weakness_a_signal(row) or is_no_demand_signal(row) or is_up_trust_signal(row) or is_stop_volume_signal(row):
+        if Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row):
             return 'Sell'
-        elif is_power_A_signal(row) or is_power_B_signal(row) or is_reverse_up_trust_signal(row) or is_stopped_volume_signal(row):
+        elif Alphas.is_power_A_signal(row) or Alphas.is_power_B_signal(row) or Alphas.is_reverse_up_trust_signal(row) or Alphas.is_stopped_volume_signal(row):
             return 'Buy'
         else:
             return 'Hold'
