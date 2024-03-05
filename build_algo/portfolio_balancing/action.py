@@ -2,48 +2,73 @@ import pandas as pd
 import numpy as np
 import vnstock as vn
 
-def calculate_portfolio_return(data):
-    # Filter rows with signals to buy
-    buy_signals = data[data['signal'] == 'Buy']
 
-    # Initialize a dictionary to store purchase prices
-    purchase_prices = {}
+transactions_df = pd.DataFrame({
+    'Date': ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-04'],
+    'Stock': ['AAPL', 'GOOGL', 'MSFT', 'AAPL'],
+    'Action': ['Buy', 'Buy', 'Sell', 'Sell'],
+    'Quantity': [100,200,500,300],
+    'Price': [150, 2500, 200, 160]
+})
 
-    # Calculate purchase prices for each stock
-    for _, row in buy_signals.iterrows():
-        ticker = row['ticker']
-        price = row['price']
-        if ticker not in purchase_prices:
-            purchase_prices[ticker] = price
+recent_prices_df = pd.DataFrame({
+    'Stock': ['AAPL', 'GOOGL', 'MSFT'],
+    'Price': [155, 2600, 210]
+})
 
-    # Filter rows with signals to sell
-    sell_signals = data[data['signal'] == 'Sell']
+portfolio_df = pd.DataFrame({
+    'Stock': ['AAPL', 'GOOGL'],
+    'Quantity': [100, 200]
+})
 
-    # Calculate selling prices and returns for each stock
-    total_return = 0
-    for _, row in sell_signals.iterrows():
-        ticker = row['ticker']
-        if ticker in purchase_prices:
-            purchase_price = purchase_prices[ticker]
-            selling_price = row['price']
-            stock_return = (selling_price - purchase_price) / purchase_price
-            total_return += stock_return
+def get_recent_price(stock_name):
+    recent_price = recent_prices_df.loc[recent_prices_df['Stock'] == stock_name, 'Price'].values[0]
+    return recent_price
 
-    return total_return
+def calculate_daily_returns(transactions_df, recent_prices_df):
+    merged_df = pd.merge(transactions_df, recent_prices_df, on='Stock', how='left')
+    merged_df['Daily Return'] = merged_df.groupby('Stock')['Price'].pct_change()
+    daily_returns_df = merged_df[['Date', 'Stock', 'Daily Return']]
+    return daily_returns_df
 
-# Example usage:
-# Assume 'data' is your DataFrame containing ticker, date, price, and signal columns
-# Call the function to calculate the portfolio return
+def cal_portfolio_daily_return(transactions_df,recent_prices_df, portfolio_df):
+    daily_returns_df = calculate_daily_returns(transactions_df, recent_prices_df)
+    merged_df = pd.merge(daily_returns_df, portfolio_df, on='Stock', how='inner')
+    merged_df['Weighted Return'] = merged_df['Daily Return'] * merged_df['Quantity']
+    total_weighted_return = merged_df['Weighted Return'].sum()
+    total_portfolio_quantity = merged_df['Quantity'].sum()
+    mean_return = total_weighted_return / total_portfolio_quantity
+    return mean_return
 
-def calculate_daily_portfolio_return(portfolio_data):
-    #Calculate daily returns for each asset
-    asset_returns = portfolio_data.pct_change()
+def cal_port_current_value(portfolio_df, current_prices):
+    initial_value = 123
 
-    #Calculate portfolio value
-    portfolio_value = (portfolio_data * asset_returns).sum(axis=1)
+    for asset, quantity in portfolio_df.items():
+        price = current_prices.get(asset, 0)
+        asset_value = price*quantity
+        current_value += asset_value
+    return current_value
 
-    #Calculate daily portfolio return
-    daily_returns = portfolio_value.pct_change()
+def record_action(portfolio_df, transactions_df):
+    for index, action in transactions_df.interrows():
+        date = transactions_df['Date']
+        stock = transactions_df['Stock']
+        action = transactions_df['Action']
+        quantity = transactions_df['Quantity']
+        price = transactions_df['Price']
 
-    return daily_returns
+        stock_row = portfolio_df.loc[portfolio_df['Stock']== stock]
 
+        if action == 'Buy':
+            if not stock_row.empty:
+                portfolio_df.loc[portfolio_df['Stock'] == stock, 'Quantity'] += quantity
+            else:
+                portfolio_df = portfolio_df.append({'Stock': stock, 'Quantity': quantity, 'Price': price}, ignore_index = True)
+        elif action == 'Sell':
+            if not stock_row.empty:
+                portfolio_df.loc[portfolio_df['Stock']== stock, 'Quantity']-= quantity
+                if portfolio_df.loc[portfolio_df['Stock'] == stock, 'Quantity'].values[0] <= 0:
+                    portfolio_df = portfolio_df[portfolio_df['Stock'] != stock]
+        return portfolio_df
+
+    
