@@ -34,3 +34,16 @@ def calculate_portfolio_return(data):
 # Example usage:
 # Assume 'data' is your DataFrame containing ticker, date, price, and signal columns
 # Call the function to calculate the portfolio return
+
+def calculate_daily_portfolio_return(portfolio_data):
+    #Calculate daily returns for each asset
+    asset_returns = portfolio_data.pct_change()
+
+    #Calculate portfolio value
+    portfolio_value = (portfolio_data * asset_returns).sum(axis=1)
+
+    #Calculate daily portfolio return
+    daily_returns = portfolio_value.pct_change()
+
+    return daily_returns
+

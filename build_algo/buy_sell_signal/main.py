@@ -5,8 +5,8 @@ import calculation as cal
 import alphas as alp
 
 import sys
-sys.path.append('D:\DATA ANALYSIS\COMPETITION\ATTACKER\ATTACKER\Attacker-2024\Build Algo\Portfolio Balancing Algo')
-from Portfolio Balancing Algo import action as act
+sys.path.append(r'D:\DATA ANALYSIS\COMPETITION\ATTACKER\ATTACKER\Attacker-2024\build_algo\portfolio_balancing')
+import action as act
 
 
 
