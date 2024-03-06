@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import vnstock as vn
+from configparser import ConfigParser
 
 
 transactions_df = pd.DataFrame({
@@ -71,4 +72,39 @@ def record_action(portfolio_df, transactions_df):
                     portfolio_df = portfolio_df[portfolio_df['Stock'] != stock]
         return portfolio_df
 
-    
+def buy_stock(stock, quantity):
+    '''
+    quantity
+    price
+    order
+    stock
+    '''
+    print(f"Buying {quantity} shares of {stock}")
+
+
+def sell_stock(stock, quantity):
+    '''
+    quantity
+    price
+    order
+    stock
+    '''
+    print(f"Selling {quantity} shares of {stock}")
+
+def read_config(file_path='config/config.ini'):
+    config = ConfigParser()
+    config.read(file_path)
+    return config['main']
+
+def execute_orders():
+    config = read_config()
+    client_id = config['CLIENT_ID']
+    redirect_url = config['REDIRECT_URL']
+    json_path = config['JSON_PATH']
+    account_number = config['ACCOUNT_NUMBER']
+
+    buy_stock('AAPL', 100)
+    sell_stock('GOOGL', 200)
+
+if __name__ == "__main__":
+    execute_orders()
