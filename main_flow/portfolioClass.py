@@ -176,15 +176,4 @@ class Portfolio:
     Kết thúc định nghĩa class Portfolio
 '''
 
-df_percentage = pd.DataFrame({
-    'ticker': ['AAA', 'BBB', 'CCC'],
-    'percentage': [0.2, 0.2, 0.6]
-})
 
-my_portfolio = Portfolio(starting_cash=1000000000, ticker_list=np.array(['AAA', 'BBB', 'CCC']), df_percentage=df_percentage)
-my_portfolio.add_transaction('AAA', 1000, 100, 'buy')
-my_portfolio.add_transaction('AAA', 1001, 100, 'buy')
-my_portfolio.add_transaction('BBB', 1000, 100, 'buy')
-my_portfolio.add_transaction('CCC', 1000, 100, 'buy')
-
-my_portfolio.show_porfolio()
