@@ -71,3 +71,6 @@ def read_df5_local():
     file_path = os.path.join(current_directory, '5_tickers_local.csv')
     df = pd.read_csv(file_path).head(5)
     return df
+
+def get_5_ticker():
+    return stock_filter_past().head(5)

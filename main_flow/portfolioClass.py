@@ -72,6 +72,9 @@ class Portfolio:
         self.transaction_list = self.transaction_list._append(new_transaction, ignore_index=True)
         
     def calculate_holding_stock_value(self):
+        '''
+            - Tính tổng giá trị cổ phiếu đang nắm giữ
+        '''
         value = 0
         for index, it in self.stock_df.iterrows():
             if it['holding']:
@@ -79,17 +82,15 @@ class Portfolio:
                 value += it['current_price']*it['quantity']
         print('Current holding stock value', value)
         return value
-                # signal_filter = signal_df[signal_df['ticker'] == ticker]
-                # last_row = signal_filter.tail(1)
-                # print(f'last price of ticker {ticker}: {last_row.at[last_row.index[0], 'close']}')
-                # total_cash += last_row.at[last_row.index[0], 'close']*it['quantity']
-    
+                
     
     def update_buy_power(self):
-        # print('***Update buy power for each ticker ')
-        # print('Current cash: ', self.cash)
         
-        #### Calcutlate total revenue which includes cash, pending money, holding stock
+        ''' 
+            - Calcutlate total revenue which includes cash, pending money, holding stock
+            - Tính sức mua cho từng cổ phiếu dựa vào tổng tài sản
+              bao gồm cash, giá trị cổ phiếu đang nắm giữ và tiền đang chờ khi bán cp
+        '''
         pending_money = self.stock_df['pending_money'].sum()
         holding_stock_value = self.calculate_holding_stock_value()
         
@@ -101,6 +102,7 @@ class Portfolio:
         
     def update_portfolio(self, current_date):
         '''
+            - Cập nhật tiền của bán từ phiên trước
         '''
         for index, it in self.stock_df.iterrows():
             last_date_sell = it['last_date_sell']
@@ -113,21 +115,20 @@ class Portfolio:
         
         
     def validate_buy(self, signal_row):
+        '''
+            Cập nhật sức mua cho từng mã cp
+        '''
         self.update_buy_power()
         signal = signal_row['signal']
         ticker = signal_row['ticker']
         index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
         self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
         
-        # Kiểm tra cổ phiếu đã được mua hay chưa
+        # Kiểm tra cổ phiếu đã có đang nắm giữ hay chưa
         if self.stock_df.at[index_of_ticker, 'holding']:
             print(f'Co phieu dang nam giu {ticker}, khong the mua')
             return # Thoát hàm
         
-        # # Lọc transaction theo ticker và theo action 'sell'
-        # transList = self.transaction_list
-        # ticker_trans = transList[(transList['ticker'] == ticker) & (transList['action'] == 'Sell')]
-        # ticker_trans.sort_values(by='time', inplace=True)
         
         # Kiểm tra luật T+2
         signal_date = signal_row['time']
@@ -136,11 +137,11 @@ class Portfolio:
             date_difference = (signal_date - last_transaction_date).days
             # print('difference days: ', date_difference)
             if date_difference < 2:
-                print(f'Khong mua do tien ban lan truoc chua ve {ticker}')
-                return
+                print(f'Không thể mua do luật T+ {ticker}')
+                return # Thoát hàm
             
-        # them dieu kien neu can
-        # kiem tra so tien cash khong du de mua luong co phieu du kien
+        ### Kiểm tra số tiền đang có (không tính pending) có đủ để
+        #   số mua lượng cổ phiếu dự kiên hay không
         stock_price = signal_row['close']
         tickers_buy_power = self.stock_df.at[index_of_ticker, 'buy_power']
         n_of_tickerToBuy = np.floor(tickers_buy_power/stock_price)
@@ -168,16 +169,11 @@ class Portfolio:
         index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
         self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
         
-        # Kiểm tra cổ phiếu đã được mua hay chưa
+        # Kiểm tra cổ phiếu có đang được nắm giữ hay không
         if not self.stock_df.at[index_of_ticker, 'holding']:
         # [self.stock_df['ticker'] == ticker]].index, 'holding']:
             print(f'Khong nam giu co phieu nay {ticker}, khong the ban')
             return # Thoát hàm
-        
-        # Lọc transaction theo ticker và theo action 'buy'
-        transList = self.transaction_list
-        ticker_trans = transList[(transList['ticker'] == ticker) & (transList['action'] == 'Buy')]
-        ticker_trans.sort_values(by='time', inplace=True)
         
         # Kiểm tra luật T+2
         signal_date = signal_row['time']
@@ -188,8 +184,8 @@ class Portfolio:
             
             date_difference = (signal_date - last_transaction_date).days
             if (date_difference < 2):
-                print(f'Khong ban do co phieu mua phien truoc chua nhan duoc {ticker}')
-                return
+                print(f'Không thể bán do luật T+ {ticker}')
+                return # Thoát hàm
                 
         stock_price = signal_row['close']
         # Ghi lich su ban
@@ -203,7 +199,14 @@ class Portfolio:
         self.stock_df.at[index_of_ticker, 'pending_money'] = pending_money
         self.stock_df.at[index_of_ticker, 'last_date_sell'] = signal_date
         self.update_buy_power()
-        
+
+
+    '''
+        @ Hàm quyết định giao dịch
+        - input: một dòng tín hiệu (ticker, time, close(price), signal)
+        - Đầu tiên cập nhật tiền và cổ phiếu vào đầu phiên giao dịch
+        - Dựa trên loại tín hiệu để quyết định loại giao dịch
+    '''
     def validate_transaction(self, signal_row):
         self.update_portfolio(signal_row['time'])
         signal = signal_row['signal']
