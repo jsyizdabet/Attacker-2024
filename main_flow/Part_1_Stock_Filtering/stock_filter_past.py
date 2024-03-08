@@ -32,9 +32,9 @@ def volume_largerThan_100K(df):
     df_volume = pd.DataFrame(columns=['ticker','volume_average', 'numSession'])
     for index, co in df.iterrows():
         # Tính tổng volume của 20 phiên gần nhất
-        stockHisData = vnst.stock_historical_data(symbol=co[0], start_date="2018-06-04", end_date="2018-07-01", resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
-        mean_volume =stockHisData['volume'].mean()
-        df_volume.loc[len(df_volume)] = {'ticker' : co[0], 'volume_average': mean_volume , 'numSession': len(stockHisData) }
+        stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date="2018-06-04", end_date="2018-07-01", resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
+        mean_volume = stockHisData['volume'].mean()
+        df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
 
     # Thêm cột thông tin về trung bình Volume (volume_average) vào dataframe    
     df_merged = pd.merge(df, df_volume[['ticker', 'volume_average']], on='ticker', how='left')
@@ -73,4 +73,5 @@ def read_df5_local():
     return df
 
 def get_5_ticker():
-    return stock_filter_past().head(5)
+    five_ticker = stock_filter_past().head(5)
+    return five_ticker

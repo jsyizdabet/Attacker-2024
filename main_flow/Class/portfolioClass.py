@@ -7,6 +7,7 @@ class Portfolio:
         Khởi tạo portfolio
     '''
     def __init__(self, starting_cash, ticker_list, df_percentage):
+        self.initial_cash = starting_cash
         self.cash = starting_cash
         self.ticker_list = ticker_list
         self.stock_df = self.create_stock_df(ticker_list=ticker_list)
@@ -71,7 +72,7 @@ class Portfolio:
         # Phương thức append
         self.transaction_list = self.transaction_list._append(new_transaction, ignore_index=True)
         
-    def calculate_holding_stock_value(self):
+    def calculate_holding_stock_values(self):
         '''
             - Tính tổng giá trị cổ phiếu đang nắm giữ
         '''
@@ -80,7 +81,7 @@ class Portfolio:
             if it['holding']:
                 # ticker = it['ticker']
                 value += it['current_price']*it['quantity']
-        print('Current holding stock value', value)
+        # print('Current holding stock value', value)
         return value
                 
     
@@ -92,7 +93,7 @@ class Portfolio:
               bao gồm cash, giá trị cổ phiếu đang nắm giữ và tiền đang chờ khi bán cp
         '''
         pending_money = self.stock_df['pending_money'].sum()
-        holding_stock_value = self.calculate_holding_stock_value()
+        holding_stock_value = self.calculate_holding_stock_values()
         
         total_buy_power = pending_money + holding_stock_value + self.cash
         for index, it in self.stock_df.iterrows():
@@ -100,9 +101,9 @@ class Portfolio:
             new_buy_power = total_buy_power*ticker_percentage
             self.stock_df.at[index, 'buy_power'] = new_buy_power
         
-    def update_portfolio(self, current_date):
+    def check_pending_money(self, current_date):
         '''
-            - Cập nhật tiền của bán từ phiên trước
+            - Cập nhật tiền của cp bán từ phiên trước
         '''
         for index, it in self.stock_df.iterrows():
             last_date_sell = it['last_date_sell']
@@ -112,7 +113,6 @@ class Portfolio:
                     self.cash += it['pending_money']
                     self.stock_df.at[index, 'pending_money'] = 0
 
-        
         
     def validate_buy(self, signal_row):
         '''
@@ -147,6 +147,7 @@ class Portfolio:
         n_of_tickerToBuy = np.floor(tickers_buy_power/stock_price)
         estimate_money = n_of_tickerToBuy * stock_price
         if self.cash < estimate_money:
+            print(f'Khong du tien {ticker}, khong the mua')
             return # Thoat ham, vi khong du tien
         
         # Ghi lai lich su mua
@@ -165,8 +166,9 @@ class Portfolio:
     def validate_sell(self, signal_row):
         signal = signal_row['signal']
         ticker = signal_row['ticker']
-        # self.update_buy_power()
+        
         index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
+        # Cập nhật giá của cổ phiếu tại ngày đang xét cho dù có đưa ra giao dịch hay không
         self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
         
         # Kiểm tra cổ phiếu có đang được nắm giữ hay không
@@ -191,6 +193,7 @@ class Portfolio:
         # Ghi lich su ban
         n_of_stock_toSell = self.stock_df.at[index_of_ticker, 'quantity']
         self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_stock_toSell, action=signal)
+        print(f'Thuc hien ban co phieu {ticker}')
         
         # update portfolio
         self.stock_df.at[index_of_ticker, 'quantity'] = 0 # Ban het
@@ -208,7 +211,7 @@ class Portfolio:
         - Dựa trên loại tín hiệu để quyết định loại giao dịch
     '''
     def validate_transaction(self, signal_row):
-        self.update_portfolio(signal_row['time'])
+        self.check_pending_money(signal_row['time'])
         signal = signal_row['signal']
         if (signal == 'Buy'):
             self.validate_buy(signal_row=signal_row)
@@ -231,6 +234,12 @@ class Portfolio:
         result = transList[transList['ticker'] == 'aaa']
         print(result)
         
+    def get_pending_money(self):
+        return self.stock_df['pending_money'].sum()
+    
+    def cal_performance(self):
+        return (self.cash + self.calculate_holding_stock_values() + self.get_pending_money())/self.initial_cash
+    
     # Getter cho thuộc tính
     @property
     def portfolio_stock_df(self):
