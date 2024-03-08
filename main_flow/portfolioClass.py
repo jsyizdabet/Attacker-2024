@@ -22,6 +22,10 @@ class Portfolio:
             'weight': [0.0]*ticker_list_len,
             'buy_power': [0]*ticker_list_len,
             'holding': [False]*ticker_list_len,
+            'current_price': [0]*ticker_list_len,
+            'last_date_sell': ['']*ticker_list_len,
+            'last_date_buy': ['']*ticker_list_len,
+            'pending_money': [0]*ticker_list_len,
             'quantity': [0]*ticker_list_len
         }
         stock_df = pd.DataFrame(data)
@@ -67,56 +71,92 @@ class Portfolio:
         # Phương thức append
         self.transaction_list = self.transaction_list._append(new_transaction, ignore_index=True)
         
-    def update_buy_power(self):
-        print('***Update buy power for each ticker ')
-        print('Current cash: ', self.cash)
+    def calculate_holding_stock_value(self):
+        value = 0
         for index, it in self.stock_df.iterrows():
-            if not it['holding']:
-                ticker_percentage = self.stock_df.loc[index]['percentage']
-                new_buy_power = self.cash*ticker_percentage
-                self.stock_df.at[index, 'buy_power'] = new_buy_power
+            if it['holding']:
+                # ticker = it['ticker']
+                value += it['current_price']*it['quantity']
+        print('Current holding stock value', value)
+        return value
+                # signal_filter = signal_df[signal_df['ticker'] == ticker]
+                # last_row = signal_filter.tail(1)
+                # print(f'last price of ticker {ticker}: {last_row.at[last_row.index[0], 'close']}')
+                # total_cash += last_row.at[last_row.index[0], 'close']*it['quantity']
+    
+    
+    def update_buy_power(self):
+        # print('***Update buy power for each ticker ')
+        # print('Current cash: ', self.cash)
+        
+        #### Calcutlate total revenue which includes cash, pending money, holding stock
+        pending_money = self.stock_df['pending_money'].sum()
+        holding_stock_value = self.calculate_holding_stock_value()
+        
+        total_buy_power = pending_money + holding_stock_value + self.cash
+        for index, it in self.stock_df.iterrows():
+            ticker_percentage = self.stock_df.loc[index]['percentage']
+            new_buy_power = total_buy_power*ticker_percentage
+            self.stock_df.at[index, 'buy_power'] = new_buy_power
+        
+    def update_portfolio(self, current_date):
+        '''
+        '''
+        for index, it in self.stock_df.iterrows():
+            last_date_sell = it['last_date_sell']
+            if last_date_sell != '':
+                date_difference = (current_date-last_date_sell).days
+                if (date_difference >= 2):
+                    self.cash += it['pending_money']
+                    self.stock_df.at[index, 'pending_money'] = 0
+
+        
         
     def validate_buy(self, signal_row):
+        self.update_buy_power()
         signal = signal_row['signal']
         ticker = signal_row['ticker']
+        index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
+        self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
         
         # Kiểm tra cổ phiếu đã được mua hay chưa
-        index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
         if self.stock_df.at[index_of_ticker, 'holding']:
             print(f'Co phieu dang nam giu {ticker}, khong the mua')
             return # Thoát hàm
         
-        # Lọc transaction theo ticker và theo action 'sell'
-        transList = self.transaction_list
-        ticker_trans = transList[(transList['ticker'] == ticker) & (transList['action'] == 'Sell')]
-        ticker_trans.sort_values(by='time', inplace=True)
-        
-        # print(ticker_trans)
-        # return
+        # # Lọc transaction theo ticker và theo action 'sell'
+        # transList = self.transaction_list
+        # ticker_trans = transList[(transList['ticker'] == ticker) & (transList['action'] == 'Sell')]
+        # ticker_trans.sort_values(by='time', inplace=True)
         
         # Kiểm tra luật T+2
         signal_date = signal_row['time']
-        if not ticker_trans.empty:
-            last_transaction_date = ticker_trans.iloc[-1]['time']
-            date_format = '%Y-%m-%d'
+        last_transaction_date = self.stock_df.at[index_of_ticker, 'last_date_sell']
+        if last_transaction_date != '':
             date_difference = (signal_date - last_transaction_date).days
             # print('difference days: ', date_difference)
             if date_difference < 2:
                 print(f'Khong mua do tien ban lan truoc chua ve {ticker}')
                 return
             
+        # them dieu kien neu can
+        # kiem tra so tien cash khong du de mua luong co phieu du kien
         stock_price = signal_row['close']
         tickers_buy_power = self.stock_df.at[index_of_ticker, 'buy_power']
-        n_of_stocksCanBought = np.floor(tickers_buy_power/stock_price)
-        
-        # them dieu kien neu can
+        n_of_tickerToBuy = np.floor(tickers_buy_power/stock_price)
+        estimate_money = n_of_tickerToBuy * stock_price
+        if self.cash < estimate_money:
+            return # Thoat ham, vi khong du tien
         
         # Ghi lai lich su mua
-        self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_stocksCanBought, action=signal)
+        self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_tickerToBuy, action=signal)
         
-        self.stock_df.at[index_of_ticker, 'quantity'] = n_of_stocksCanBought
+        # Cap nhat trang thai co phieu trong portfolio
+        self.stock_df.at[index_of_ticker, 'quantity'] = n_of_tickerToBuy
         self.stock_df.at[index_of_ticker, 'holding'] = True
-        self.cash -= n_of_stocksCanBought*stock_price
+        self.stock_df.at[index_of_ticker, 'last_date_buy'] = signal_date
+        self.cash -= estimate_money
+        print('Thuc hien mua co phieu ', ticker)
         
         # There no need to update buy power when a ticker is bought
         # self.update_buy_power()
@@ -124,9 +164,11 @@ class Portfolio:
     def validate_sell(self, signal_row):
         signal = signal_row['signal']
         ticker = signal_row['ticker']
+        # self.update_buy_power()
+        index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
+        self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
         
         # Kiểm tra cổ phiếu đã được mua hay chưa
-        index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
         if not self.stock_df.at[index_of_ticker, 'holding']:
         # [self.stock_df['ticker'] == ticker]].index, 'holding']:
             print(f'Khong nam giu co phieu nay {ticker}, khong the ban')
@@ -139,33 +181,37 @@ class Portfolio:
         
         # Kiểm tra luật T+2
         signal_date = signal_row['time']
-        if not ticker_trans.empty:
-            last_transaction_date = ticker_trans.iloc[-1]['time']
+        last_transaction_date = self.stock_df.at[index_of_ticker, 'last_date_buy']
+        if last_transaction_date != '':
             # print('date1 ', signal_date)
             # print('date2 ', last_transaction_date)
+            
             date_difference = (signal_date - last_transaction_date).days
             if (date_difference < 2):
-                print(f'Khong ban do co phieu mua chua nhan duoc {ticker}')
+                print(f'Khong ban do co phieu mua phien truoc chua nhan duoc {ticker}')
                 return
                 
         stock_price = signal_row['close']
         # Ghi lich su ban
         n_of_stock_toSell = self.stock_df.at[index_of_ticker, 'quantity']
-        # quantity = self.ticker_list.at[[self.ticker_list['ticker'] == ticker].index, 'quantity']
         self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_stock_toSell, action=signal)
         
         # update portfolio
         self.stock_df.at[index_of_ticker, 'quantity'] = 0 # Ban het
         self.stock_df.at[index_of_ticker, 'holding'] = False 
-        self.cash += n_of_stock_toSell*stock_price
+        pending_money = n_of_stock_toSell*stock_price
+        self.stock_df.at[index_of_ticker, 'pending_money'] = pending_money
+        self.stock_df.at[index_of_ticker, 'last_date_sell'] = signal_date
         self.update_buy_power()
         
     def validate_transaction(self, signal_row):
+        self.update_portfolio(signal_row['time'])
         signal = signal_row['signal']
         if (signal == 'Buy'):
             self.validate_buy(signal_row=signal_row)
         if (signal == 'Sell'):
-            self.validate_sell(signal_row=signal_row) 
+            self.validate_sell(signal_row=signal_row)
+         
     
     def show_porfolio(self):
         print('==============PORTFOLIO================')

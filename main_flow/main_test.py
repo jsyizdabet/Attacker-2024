@@ -17,6 +17,7 @@ df_percentage = pd.DataFrame({
 })
 
 my_portfolio = Portfolio(starting_cash=1000000000, ticker_list=ticker_list, df_percentage=df_percentage)
+print('############### Initial Portfolio ###############')
 my_portfolio.show_porfolio()
 
 
@@ -71,18 +72,21 @@ data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
 data = data[data['signal'] != 'Hold']
 data.reset_index(inplace=True)
 signal_df = pd.concat([signal_df, data], ignore_index=True)
-print(len(signal_df))
-'''
+print(signal_df)
 
-for index, it in signal_df.head(15).iterrows():
+
+for index, it in signal_df.head(20).iterrows():
     # print(it['signal'])
     my_portfolio.validate_transaction(signal_row=it)
+'''        
+        
 
-
+print('============== After trading =================')
+my_portfolio.show_porfolio()
+print('=========== Extra information ==============')
 portfolio_stock_df = my_portfolio.portfolio_stock_df
 print(portfolio_stock_df)
 total_cash = my_portfolio.cash_prop
-
 for index, it in portfolio_stock_df.iterrows():
     if it['holding']:
         ticker = it['ticker']
@@ -92,8 +96,3 @@ for index, it in portfolio_stock_df.iterrows():
         total_cash += last_row.at[last_row.index[0], 'close']*it['quantity']
         
 print('total cash: ', total_cash)
-        
-        
-
-print('==============Sau khi trade het signal list')
-my_portfolio.show_porfolio()
