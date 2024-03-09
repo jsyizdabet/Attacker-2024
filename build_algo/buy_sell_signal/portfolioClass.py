@@ -12,6 +12,7 @@ class Portfolio:
         self.stock_df = self.create_stock_df(ticker_list=ticker_list)
         self.transaction_list = self.create_transaction_list()
         self.update_percentage(df_percentage=df_percentage)
+        self.init_buy_power();
 
     def create_stock_df(self, ticker_list):
         ticker_list_len = len(ticker_list) 
@@ -29,6 +30,7 @@ class Portfolio:
     def update_percentage(self, df_percentage):
         self.stock_df['percentage'] = df_percentage['percentage'].values
         
+    
     def create_transaction_list(self):
         data = {
             'time': [],
@@ -39,6 +41,13 @@ class Portfolio:
         }      
         transaction_list = pd.DataFrame(data)
         return transaction_list
+    
+    def init_buy_power(self):
+        for index, it in self.stock_df.iterrows():
+            ticker_percentage = self.stock_df.loc[index]['percentage']
+            new_buy_power = self.cash*ticker_percentage
+            print(new_buy_power)
+            self.stock_df.at[index, 'buy_power'] = new_buy_power
     '''
         Kết thúc khởi tạo portfolio
     '''
@@ -59,11 +68,11 @@ class Portfolio:
         self.transaction_list = self.transaction_list._append(new_transaction, ignore_index=True)
         
     def update_buy_power(self):
-        for index, it in self.ticker_list.iterrows():
+        for index, it in self.stock_df.iterrows():
             if not it['holding']:
-                ticker_percentage = self.ticker_list[index]['percentage']
+                ticker_percentage = self.stock_df.loc[index]['percentage']
                 new_buy_power = self.cash*ticker_percentage
-                self.ticker_list.at[index]['buy_power'] = new_buy_power
+                self.stock_df.loc[index]['buy_power'] = new_buy_power
         
     def validate_buy(self, signal_row):
         signal = signal_row['signal']

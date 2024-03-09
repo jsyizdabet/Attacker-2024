@@ -1,6 +1,7 @@
 # import các thư viện cần thiết
 import vnstock as vnst
 import pandas as pd
+import os
 
 def basic_filter(df):
     # Lọc theo một vài tiêu chí cơ bản
@@ -31,9 +32,9 @@ def volume_largerThan_100K(df):
     df_volume = pd.DataFrame(columns=['ticker','volume_average', 'numSession'])
     for index, co in df.iterrows():
         # Tính tổng volume của 20 phiên gần nhất
-        stockHisData = vnst.stock_historical_data(symbol=co[0], start_date="2018-06-04", end_date="2018-07-01", resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
-        mean_volume =stockHisData['volume'].mean()
-        df_volume.loc[len(df_volume)] = {'ticker' : co[0], 'volume_average': mean_volume , 'numSession': len(stockHisData) }
+        stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date="2018-06-04", end_date="2018-07-01", resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
+        mean_volume = stockHisData['volume'].mean()
+        df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
 
     # Thêm cột thông tin về trung bình Volume (volume_average) vào dataframe    
     df_merged = pd.merge(df, df_volume[['ticker', 'volume_average']], on='ticker', how='left')
@@ -48,7 +49,10 @@ def stock_filter_past():
     # ---- Chuẩn bị dataframe dữ liệu thô
     # Nhập dữ liệu từ file thông tin đã tải xuống của năm 2018
     # và loại bỏ các cột không cần thiết, các dòng trùng lặp (nếu có)
-    df = pd.read_csv('data_Q3-2018-mergedIndustry.csv')
+    # Lấy đường dẫn tuyệt đối của file
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, 'data_Q3-2018-mergedIndustry.csv')
+    df = pd.read_csv(file_path)
     df.drop('Unnamed: 0', axis=1, inplace=True)
     df.drop_duplicates(subset='ticker', keep='first', inplace=True)
     df_dropColumns = df[['ticker', 'quarter', 'year', 'priceToEarning', 'priceToBook', 'roe',
@@ -62,6 +66,12 @@ def stock_filter_past():
     result = volume_largerThan_100K(filter)
     return result
 
-def get_5_tickers():
-    ticker_list = stock_filter_past()['ticker'].to_list();
-    return ticker_list
+def read_df5_local():
+    current_directory = os.path.dirname(__file__)
+    file_path = os.path.join(current_directory, '5_tickers_local.csv')
+    df = pd.read_csv(file_path).head(5)
+    return df
+
+def get_5_ticker():
+    five_ticker = stock_filter_past().head(5)
+    return five_ticker
