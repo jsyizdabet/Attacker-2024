@@ -4,6 +4,14 @@ import vnstock as vn
 import calculation as cal
 import alphas as alp
 
+# import sys
+# sys.path.append('D:\DATA ANALYSIS\COMPETITION\ATTACKER\ATTACKER\Attacker-2024\Build Algo\Portfolio Balancing Algo')
+# from Portfolio Balancing Algo import action as act
+
+import sys
+sys.path.append('C:\\Users\\Dell\\Documents\\Python\\Attacker-2024\\build_algo')
+from portfolio_balancing import action as act
+
 data = cal.DataProcessor.load_data('VCB')
 # data = data.set_index('time')
 #Tính trung bình 20 phiên gần nhất
@@ -22,6 +30,10 @@ data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
 
 data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
 signal_counts = data['signal'].value_counts()
+print(data)
+
+# bat dau trade
+
 print("Số lượng 'Sell':", signal_counts.get('Sell', 0))
 print("Số lượng 'Buy':", signal_counts.get('Buy', 0))
 print("Số lượng 'Hold':", signal_counts.get('Hold', 0))

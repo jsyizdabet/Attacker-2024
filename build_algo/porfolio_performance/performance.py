@@ -13,7 +13,8 @@ def calculate_portfolio_performance(df):
             if tran['signal'] == 'sell':
                 sell_price = tran['price']
                 df_buys = df_ticker[df_ticker['signal'] == 'buy']
-                df_buys['profit'] = (sell_price - df_buys['price'])/100
+                df_buys['profit'] = ((sell_price - df_buys['price']) * df_ticker.at[index-1, 'quantity'])/100
+                print(df_buys)
                 ticker_profit = df_buys['profit'].sum()
                 # print(df_buys['profit'].sum())
 
@@ -21,11 +22,11 @@ def calculate_portfolio_performance(df):
     return total_performance
 
 # Tạo DataFrame minh họa
-data = {'date': ['2024-01-01', '2024-01-02', '2024-01-03', '2024-01-01', '2024-01-02', '2024-01-03'],
-        'ticker': ['AAPL', 'AAPL', 'AAPL', 'GOOGL', 'GOOGL', 'GOOGL'],
+data = {'date': ['2024-01-02', '2024-01-03', '2024-01-01', '2024-01-02', '2024-01-03'],
+        'ticker': ['AAPL', 'AAPL', 'GOOGL', 'GOOGL', 'GOOGL'],
         'signal': ['buy', 'buy', 'sell', 'buy', 'sell', 'buy'],
-        'price': [100, 105, 98, 500, 510, 490],
-        'quantity': [10, 10, 20, 10, 10, 20]}
+        'price': [ 105, 98, 500, 510, 490],
+        'quantity': [ 10, 20, 10, 10, 20]}
 
 df_portfolio = pd.DataFrame(data)
 print('input dataframe:', df_portfolio)
