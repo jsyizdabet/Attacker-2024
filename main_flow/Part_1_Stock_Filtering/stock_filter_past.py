@@ -2,6 +2,29 @@
 import vnstock as vnst
 import pandas as pd
 import os
+from datetime import datetime, timedelta
+
+'''
+    Utility functions
+    
+'''
+def subtract_weekdays(start_date_str, days_to_subtract):
+    # Chuyển đổi chuỗi ngày đầu vào thành đối tượng datetime
+    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+    # Tăng lên một ngày để khi chạy vòng for thì nó sẽ tính cả ngày bắt đầu
+    start_date += timedelta(days=1)
+        
+    # Duyệt qua các ngày để lùi lại
+    for _ in range(days_to_subtract):
+        # Lùi lại một ngày từ ngày hiện tại
+        start_date -= timedelta(days=1)
+
+        # Kiểm tra xem ngày mới có phải là thứ 7 hoặc chủ nhật không
+        while start_date.weekday() in [5, 6]:
+            start_date -= timedelta(days=1)
+
+    # Trả về ngày cuối cùng sau khi lùi lại
+    return start_date.strftime('%Y-%m-%d')
 
 def basic_filter(df):
     # Lọc theo một vài tiêu chí cơ bản
@@ -9,7 +32,7 @@ def basic_filter(df):
     df2.reset_index(drop=True, inplace=True)
     return df2
 
-def pe_largerThan_pe_avg(df):
+def pe_smallerThan_pe_avg(df):
     # Tạo dataframe chứa dữ liệu P/E trung bình theo ngành
     df_pe_byIndustry = df.groupby('industry').agg(
         avg_pe = ('priceToEarning', 'mean')
@@ -22,17 +45,20 @@ def pe_largerThan_pe_avg(df):
         # get the pe average value
         df.at[index, 'pe_avg'] =  df_pe_byIndustry.loc[industryName][0]
 
-    result = df[df['priceToEarning'] > df['pe_avg']]
+    result = df[df['priceToEarning'] < df['pe_avg']]
     return result
 
-def volume_largerThan_100K(df):
+def volume_largerThan_100K(df, year):
     # ------ Khối lượng trung bình 20 phiên gần nhất của từng cổ phiếu: Volume trung bình > 100 ngàn
 
     # Tạo một df chứa ticker và trung bình Volume của 20 phiên gần nhất
     df_volume = pd.DataFrame(columns=['ticker','volume_average', 'numSession'])
+    end_date = f'{year}-07-01'
+    start_date = subtract_weekdays(end_date, 20)
+    
     for index, co in df.iterrows():
         # Tính tổng volume của 20 phiên gần nhất
-        stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date="2018-06-04", end_date="2018-07-01", resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
+        stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date=start_date, end_date=end_date, resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
         mean_volume = stockHisData['volume'].mean()
         df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
 
@@ -45,13 +71,14 @@ def volume_largerThan_100K(df):
     return df_result
 
 
-def stock_filter_past():
+def stock_filter_past(year):
     # ---- Chuẩn bị dataframe dữ liệu thô
     # Nhập dữ liệu từ file thông tin đã tải xuống của năm 2018
     # và loại bỏ các cột không cần thiết, các dòng trùng lặp (nếu có)
     # Lấy đường dẫn tuyệt đối của file
     current_directory = os.path.dirname(__file__)
-    file_path = os.path.join(current_directory, 'data_Q3-2018-mergedIndustry.csv')
+    file_name = f'data_Q3-{year}-mergedIndustry.csv'
+    file_path = os.path.join(current_directory, file_name)
     df = pd.read_csv(file_path)
     df.drop('Unnamed: 0', axis=1, inplace=True)
     df.drop_duplicates(subset='ticker', keep='first', inplace=True)
@@ -61,9 +88,10 @@ def stock_filter_past():
     df_dropColumns['pe_avg'] = 0
     df_dropColumns.reset_index(drop=True, inplace=True)
 
-    filter = pe_largerThan_pe_avg(df_dropColumns)
+    
+    filter = pe_smallerThan_pe_avg(df_dropColumns)
     filter = basic_filter(filter)
-    result = volume_largerThan_100K(filter)
+    result = volume_largerThan_100K(df=filter, year=year)
     return result
 
 def read_df5_local():
@@ -72,6 +100,6 @@ def read_df5_local():
     df = pd.read_csv(file_path).head(5)
     return df
 
-def get_5_ticker():
-    five_ticker = stock_filter_past().head(5)
+def get_5_ticker(year):
+    five_ticker = stock_filter_past(year=year).sort_values('priceToEarning', ascending=False).head(5)
     return five_ticker
