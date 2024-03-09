@@ -15,13 +15,14 @@ from Part_2_Algorithm import alphas as alp
 
 
 ###### Lấy danh sách signals của 5 mã cổ phiếu
-ticker_list = stfp.get_5_ticker()['ticker'].to_list()
+ticker_list = stfp.get_5_ticker(year=2020)['ticker'].to_list()
 print('Chon ra 5 co phieu thanh cong!', ticker_list)
 
 ###### Thiết lập phần trăm danh mục dựa trên weight
 df_percentage = pd.DataFrame({
     'ticker': ticker_list,
-    'percentage': [0.1, 0.1, 0.3, 0.2, 0.3]
+    'percentage': [0.3513, 0.05, 0.353, 0.1957, 0.05]
+    # 'percentage': [0.1, 0.1, 0.3, 0.2, 0.3]
 })
 
 ###### Khởi tạo portfolio

@@ -9,8 +9,8 @@ class DataProcessor:
     
     #load_data
     def load_data(ticker):
-        START = "2019-01-01"
-        END = "2020-02-01"
+        START = "2021-01-01"
+        END = "2022-02-01"
         data = vn.stock_historical_data(ticker, START, END)    
         return data
 
