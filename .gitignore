@@ -4,3 +4,4 @@ vsa.py
 requirements.txt
 stock_venv
 crawl_data
+config
