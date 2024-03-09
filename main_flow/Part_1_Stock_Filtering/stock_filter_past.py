@@ -9,7 +9,7 @@ def basic_filter(df):
     df2.reset_index(drop=True, inplace=True)
     return df2
 
-def pe_largerThan_pe_avg(df):
+def pe_smallerThan_pe_avg(df):
     # Tạo dataframe chứa dữ liệu P/E trung bình theo ngành
     df_pe_byIndustry = df.groupby('industry').agg(
         avg_pe = ('priceToEarning', 'mean')
@@ -22,7 +22,7 @@ def pe_largerThan_pe_avg(df):
         # get the pe average value
         df.at[index, 'pe_avg'] =  df_pe_byIndustry.loc[industryName][0]
 
-    result = df[df['priceToEarning'] > df['pe_avg']]
+    result = df[df['priceToEarning'] < df['pe_avg']]
     return result
 
 def volume_largerThan_100K(df):
@@ -51,6 +51,7 @@ def stock_filter_past():
     # và loại bỏ các cột không cần thiết, các dòng trùng lặp (nếu có)
     # Lấy đường dẫn tuyệt đối của file
     current_directory = os.path.dirname(__file__)
+    
     file_path = os.path.join(current_directory, 'data_Q3-2018-mergedIndustry.csv')
     df = pd.read_csv(file_path)
     df.drop('Unnamed: 0', axis=1, inplace=True)
@@ -61,7 +62,8 @@ def stock_filter_past():
     df_dropColumns['pe_avg'] = 0
     df_dropColumns.reset_index(drop=True, inplace=True)
 
-    filter = pe_largerThan_pe_avg(df_dropColumns)
+    
+    filter = pe_smallerThan_pe_avg(df_dropColumns)
     filter = basic_filter(filter)
     result = volume_largerThan_100K(filter)
     return result
@@ -73,5 +75,5 @@ def read_df5_local():
     return df
 
 def get_5_ticker():
-    five_ticker = stock_filter_past().head(5)
+    five_ticker = stock_filter_past().sort_values('priceToEarning', ascending=False).head(5)
     return five_ticker

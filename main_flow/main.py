@@ -2,7 +2,6 @@
 import os
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
-os.path.join(current_dir, 'B')
 sys.path.append(os.path.join(current_dir, 'Part_1_Stock_Filtering'))
 sys.path.append(os.path.join(current_dir, 'Part_2_Algorithm'))
 
@@ -71,44 +70,11 @@ for date, group in signal_df.groupby('time'):
     date_performances_df.loc[len(date_performances_df)] = [date, date_performance]
     print('**')
     
-print(date_performances_df)
+print(date_performances_df.sample(20))
 
-'''
-###### Code chạy trên mẫu dữ liệu nhỏ
-data = cal.DataProcessor.load_data('PNJ')
-# data = data.set_index('time')
-#Tính trung bình 20 phiên gần nhất
-mean_20 = data['volume'].rolling(window=20).mean()
-#Tính on-balance volume\n",
-data['on-balance_volume'] = data['volume']/mean_20
-data['OBV_label'] = data['on-balance_volume'].apply(cal.DataProcessor.label_values)
-#Giá đóng cửa ngày t-1
-data['close_t_minus_1'] = data['close'].shift(1)
-data['bar_type'] = data.apply(cal.DataProcessor.compare_close_prices, axis=1)
-data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
-data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
-data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
-data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
-data = data[data['signal'] != 'Hold']
-data.reset_index(inplace=True)
-signal_df = pd.concat([signal_df, data], ignore_index=True)
-print(signal_df)
-
-# for index, it in signal_df:
-#     # print(it['signal'])
-#     my_portfolio.validate_transaction(signal_row=it)
-
-for date, group in signal_df.groupby('time'):
-    print(f'date {date} group')
-    print(group)
-    print('.......')
-    
-####### Kết thúc mẫu thử nhỏ
-'''
-        
 
 print('============== After trading =================')
 my_portfolio.show_porfolio()
 print('=========== Extra information ==============')
-total_cash = my_portfolio.calculate_holding_stock_values() + my_portfolio.cash_prop
-print('*Total cash: ', total_cash)
+total_cash = my_portfolio.calculate_holding_stock_values() + my_portfolio.cash_prop + my_portfolio.get_pending_money()
+print('*Total revenue: ', total_cash)
