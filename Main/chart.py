@@ -65,6 +65,7 @@ def plot_buy_sell_signal(data, selected_stock):
     # Vẽ biểu đồ dựa trên tín hiệu mua bán
     buy_signals = data[data['signal'] == 'Buy']
     sell_signals = data[data['signal'] == 'Sell']
+    hold_signals = data[data['signal'] == 'Hold']
 
     # Hiển thị nút lọc
     col1, col2 = st.columns([0.4, 0.5])
@@ -76,11 +77,13 @@ def plot_buy_sell_signal(data, selected_stock):
     # Lọc dữ liệu
     filtered_buy_signals = buy_signals[(buy_signals['time'] >= start_date) & (buy_signals['time'] <= end_date)]
     filtered_sell_signals = sell_signals[(sell_signals['time'] >= start_date) & (sell_signals['time'] <= end_date)]
+    filtered_hold_signals = hold_signals[(hold_signals['time'] >= start_date) & (hold_signals['time'] <= end_date)]
+
 
     # Tạo DataFrame mới
     signal_counts = data['signal'].value_counts()
 
-    signal_data = {'Buy': [len(filtered_buy_signals)], 'Sell': [len(filtered_sell_signals)], 'Hold': [signal_counts.get('Hold', 0)]}
+    signal_data = {'Buy': [len(filtered_buy_signals)], 'Sell': [len(filtered_sell_signals)], 'Hold': [len(filtered_hold_signals)]}
     signal_df = pd.DataFrame(signal_data)
 
     # Vẽ biểu đồ
