@@ -1,0 +1,6 @@
+,ticker,quarter,year,priceToEarning,priceToBook,roe,roa,earningPerShare,bookValuePerShare,epsChange,bookValuePerShareChange,industry,organName,pe_avg,volume_average
+0,VCB,Q3,2018,18.8,3.7,0.209,0.013,3258.0,16588.0,0.07,0.05,Ngân hàng,Ngân hàng Thương mại Cổ phần Ngoại thương Việt Nam,20.21875,2607725.0
+1,MWG,Q3,2018,15.9,5.4,0.412,0.131,3869.0,11442.0,0.031,0.086,Bán lẻ,Công ty Cổ phần Đầu tư Thế Giới Di Động,19.505000000000003,782933.5
+5,QNS,Q3,2018,8.4,1.9,0.242,0.153,3142.0,14074.0,0.034,0.022,Thực phẩm và đồ uống,Công ty Cổ phần Đường Quảng Ngãi,25.316470588235294,134013.45
+3,ANV,Q3,2018,6.8,1.5,0.241,0.121,2741.0,12203.0,0.303,0.079,Thực phẩm và đồ uống,Công ty Cổ phần Nam Việt,25.316470588235294,744146.5
+6,VHC,Q3,2018,6.5,2.1,0.37,0.225,6698.0,20793.0,0.565,0.192,Thực phẩm và đồ uống,Công ty Cổ phần Vĩnh Hoàn,25.316470588235294,216837.5

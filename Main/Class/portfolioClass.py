@@ -240,6 +240,42 @@ class Portfolio:
     def cal_performance(self):
         return (self.cash + self.calculate_holding_stock_values() + self.get_pending_money())/self.initial_cash
     
+    def portfolio_performance(self):
+        performance_per_ticker = pd.DataFrame(columns=['ticker', 'performance'])
+        # print('performance per ticker')
+        # print(performance_per_ticker)
+        
+        for ticker, tickerTransSet in self.transaction_list.groupby('ticker'):
+            tickerTransSet.sort_values('time', ascending=True)
+            tickerTransSet.reset_index(drop=True, inplace=True)
+            
+            total_buy_ticker = 0
+            total_sell_ticker = 0
+            
+            count = 0
+            sum_of_percentage_ticker = 0
+            for index, row in tickerTransSet.iterrows():
+                if index == 0:
+                    continue
+                if row['action'] == 'Sell':
+                    count += 1
+                    quantity = row['quantity']
+                    buy_price = tickerTransSet.loc[index-1, 'price']
+                    sell_price = row['price']
+                    
+                    total_buy_ticker = buy_price * quantity
+                    total_sell_ticker = sell_price * quantity
+                    
+                    sum_of_percentage_ticker += (total_sell_ticker-total_buy_ticker)/total_buy_ticker
+                    
+            ticker_performance = sum_of_percentage_ticker/count
+            performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, ticker_performance]
+            
+            # Tinh hieu suat toan danh muc
+            df_merge = pd.merge(performance_per_ticker, self.stock_df[['ticker', 'percentage']], on='ticker', how='left')
+            portfolio_performance = (df_merge['percentage'] * df_merge['performance']).sum()
+        return portfolio_performance, performance_per_ticker 
+    
     # Getter cho thuộc tính
     @property
     def portfolio_stock_df(self):

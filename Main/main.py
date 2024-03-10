@@ -2,27 +2,29 @@
 import os
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(current_dir, 'Part_1_Stock_Filtering'))
-sys.path.append(os.path.join(current_dir, 'Part_2_Algorithm'))
+sys.path.append(os.path.join(current_dir, 'StockFiltering'))
+sys.path.append(os.path.join(current_dir, 'Algorithm'))
 
 # ####### Nhập các thư viện và module
 import pandas as pd
-from Part_1_Stock_Filtering import stock_filter_past as stfp
+from StockFiltering import stock_filter_past as stfp
 from Class.portfolioClass import Portfolio
-from Part_2_Algorithm import calculation as cal
-from Part_2_Algorithm import alphas as alp
+from Algorithm import calculation as cal
+from Algorithm import alphas as alp
 
 
-
+trading_year = 2020
 ###### Lấy danh sách signals của 5 mã cổ phiếu
-ticker_list = stfp.get_5_ticker(year=2020)['ticker'].to_list()
-print('Chon ra 5 co phieu thanh cong!', ticker_list)
+ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
+# ticker_list = pd.read_csv('five_ticker_2018.csv')['ticker'].to_list()
+# print('Chon ra 5 co phieu thanh cong!', ticker_list)
 
 ###### Thiết lập phần trăm danh mục dựa trên weight
 df_percentage = pd.DataFrame({
     'ticker': ticker_list,
-    'percentage': [0.3513, 0.05, 0.353, 0.1957, 0.05]
-    # 'percentage': [0.1, 0.1, 0.3, 0.2, 0.3]
+    # 'percentage': [0.3513, 0.05, 0.353, 0.1957, 0.05]
+    'percentage': [0.279945, 0.05, 0.05, 0.570055, 0.05]
+    # 'percentage': [0.05, 0.062, 0.7628, 0.0752, 0.05]
 })
 
 ###### Khởi tạo portfolio
@@ -36,7 +38,7 @@ signal_df = pd.DataFrame(columns=['index', 'time', 'open', 'high', 'low', 'close
                                   'label_spread', 'close_bar_label', 'signal'])
 
 for ticker in ticker_list:
-    data = cal.DataProcessor.load_data(ticker)
+    data = cal.DataProcessor.load_data(ticker=ticker, year=trading_year)
     # data = data.set_index('time')
     #Tính trung bình 20 phiên gần nhất
     mean_20 = data['volume'].rolling(window=20).mean()
@@ -79,3 +81,7 @@ my_portfolio.show_porfolio()
 print('=========== Extra information ==============')
 total_cash = my_portfolio.calculate_holding_stock_values() + my_portfolio.cash_prop + my_portfolio.get_pending_money()
 print('*Total revenue: ', total_cash)
+portfolio_performance, per_per_tick = my_portfolio.portfolio_performance()
+print('Total performance', portfolio_performance*100, '%')
+print('List performance per ticker')
+print(per_per_tick)
