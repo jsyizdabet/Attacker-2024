@@ -14,7 +14,7 @@ from Algorithm import calculation as cal, weight as wi
 from Algorithm import alphas as alp
 
 
-for trading_year in range(2019, 2022):
+for trading_year in range(2019, 2023):
 
     ###### Lấy danh sách signals của 5 mã cổ phiếu
     ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
@@ -90,7 +90,7 @@ for trading_year in range(2019, 2022):
         date_performances_df.loc[len(date_performances_df)] = [date, date_performance]
         # print('**')
         
-    # print(date_performances_df.sample(20))
+    print(date_performances_df.sample(20))
 
 
     print('============== After trading =================', trading_year)

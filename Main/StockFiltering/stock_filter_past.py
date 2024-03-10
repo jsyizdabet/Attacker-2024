@@ -29,6 +29,7 @@ def subtract_weekdays(start_date_str, days_to_subtract):
 def basic_filter(df):
     # Lọc theo một vài tiêu chí cơ bản
     df2 = df[(df['roe'] >= 0.17) & (df['earningPerShare'] > 2500) & (df['bookValuePerShare'] > 10000)]
+    # df3 = df2[(df['equityOnTotalAsset'] > 0.2) & (df['equityOnTotalAsset'] < 0.8)]
     df2.reset_index(drop=True, inplace=True)
     return df2
 
@@ -84,7 +85,7 @@ def stock_filter_past(year):
     df.drop('Unnamed: 0', axis=1, inplace=True)
     df.drop_duplicates(subset='ticker', keep='first', inplace=True)
     df_dropColumns = df[['ticker', 'quarter', 'year', 'priceToEarning', 'priceToBook', 'roe',
-        'roa', 'earningPerShare', 'bookValuePerShare','epsChange','bookValuePerShareChange', 'industry', 'organName']]
+        'roa', 'earningPerShare', 'bookValuePerShare','epsChange','bookValuePerShareChange', 'industry', 'organName', 'equityOnTotalAsset']]
     # Thêm cột giá trị P/E trung bình cho dataframe
     df_dropColumns['pe_avg'] = 0
     df_dropColumns.reset_index(drop=True, inplace=True)
