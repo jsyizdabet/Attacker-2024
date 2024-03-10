@@ -84,14 +84,8 @@ class Portfolio:
         # print('Current holding stock value', value)
         return value
                 
-    
+    '''
     def update_buy_power(self):
-        
-        ''' 
-            - Calcutlate total revenue which includes cash, pending money, holding stock
-            - Tính sức mua cho từng cổ phiếu dựa vào tổng tài sản
-              bao gồm cash, giá trị cổ phiếu đang nắm giữ và tiền đang chờ khi bán cp
-        '''
         pending_money = self.stock_df['pending_money'].sum()
         holding_stock_value = self.calculate_holding_stock_values()
         
@@ -100,6 +94,8 @@ class Portfolio:
             ticker_percentage = self.stock_df.loc[index]['percentage']
             new_buy_power = total_buy_power*ticker_percentage
             self.stock_df.at[index, 'buy_power'] = new_buy_power
+    '''
+    
         
     def check_pending_money(self, current_date):
         '''
@@ -115,10 +111,7 @@ class Portfolio:
 
         
     def validate_buy(self, signal_row):
-        '''
-            Cập nhật sức mua cho từng mã cp
-        '''
-        self.update_buy_power()
+        # self.update_buy_power()
         signal = signal_row['signal']
         ticker = signal_row['ticker']
         index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
@@ -201,7 +194,8 @@ class Portfolio:
         pending_money = n_of_stock_toSell*stock_price
         self.stock_df.at[index_of_ticker, 'pending_money'] = pending_money
         self.stock_df.at[index_of_ticker, 'last_date_sell'] = signal_date
-        self.update_buy_power()
+        self.stock_df.at[index_of_ticker, 'buy_power'] = pending_money
+        # self.update_buy_power()
 
 
     '''
@@ -249,27 +243,25 @@ class Portfolio:
             tickerTransSet.sort_values('time', ascending=True)
             tickerTransSet.reset_index(drop=True, inplace=True)
             
-            total_buy_ticker = 0
-            total_sell_ticker = 0
-            
-            count = 0
-            sum_of_percentage_ticker = 0
+            trading_log = []
             for index, row in tickerTransSet.iterrows():
                 if index == 0:
                     continue
                 if row['action'] == 'Sell':
-                    count += 1
-                    quantity = row['quantity']
                     buy_price = tickerTransSet.loc[index-1, 'price']
                     sell_price = row['price']
+                    profit = (sell_price - buy_price)/buy_price
+                    trading_log.append(profit)
                     
-                    total_buy_ticker = buy_price * quantity
-                    total_sell_ticker = sell_price * quantity
-                    
-                    sum_of_percentage_ticker += (total_sell_ticker-total_buy_ticker)/total_buy_ticker
-                    
-            ticker_performance = sum_of_percentage_ticker/count
-            performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, ticker_performance]
+            
+            # Calculate performance returns
+            perf_index_returns = np.array(trading_log)
+            
+            # Calculate cumulative return
+            cumulative_return = np.prod(np.array(trading_log) + 1) - 1
+            
+            # performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, ticker_performance]
+            performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, cumulative_return]
             
             # Tinh hieu suat toan danh muc
             df_merge = pd.merge(performance_per_ticker, self.stock_df[['ticker', 'percentage']], on='ticker', how='left')

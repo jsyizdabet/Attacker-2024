@@ -102,4 +102,5 @@ def read_df5_local():
 
 def get_5_ticker(year):
     five_ticker = stock_filter_past(year=year).sort_values('priceToEarning', ascending=False).head(5)
+    five_ticker.to_csv('five_ticker_2019.csv')
     return five_ticker

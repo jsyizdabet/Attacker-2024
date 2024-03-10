@@ -53,6 +53,15 @@ for ticker in ticker_list:
     data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
     data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
     data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
+        
+        #tính RSI
+    data['delta'] = data['close'] - data['close'].shift(1)
+    data['gains'] = data['delta'].where(data['delta'] > 0, 0)
+    data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
+    data['avg_gain'] = data['gains'].rolling(window=14).mean()
+    data['avg_loss'] = data['losses'].rolling(window=14).mean()
+    data['rs'] = data['avg_gain'] / data['avg_loss']
+    data['RSI'] = 1 - (1 / (1 + data['rs']))
 
     data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
     # data = data[data['signal'] != 'Hold']
