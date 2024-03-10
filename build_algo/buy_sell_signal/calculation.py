@@ -13,7 +13,6 @@ class DataProcessor:
         START = "2019-01-01"
         END = "2020-02-01"
         data = vn.stock_historical_data(ticker, START, END)
-        print(data)
         return data
 
     #lable volume

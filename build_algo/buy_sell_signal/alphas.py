@@ -136,9 +136,9 @@ class Alphas():
             return False
     
     def get_rsi_signal(data):
-        if data['RSI'] >= 0.7:
+        if data['RSI'] >= 0.6:
             return True
-        elif data['RSI'] <= 0.3:
+        elif data['RSI'] <= 0.4:
             return False   
 
     def determine_signal(row):
