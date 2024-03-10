@@ -14,10 +14,14 @@ from Algorithm import calculation as cal, weight as wi
 from Algorithm import alphas as alp
 
 
-for trading_year in range(2019, 2023):
+
+
+
+for trading_year in range(2020, 2021):
 
     ###### Lấy danh sách signals của 5 mã cổ phiếu
     ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
+    
 
 
     ###### Thiết lập phần trăm danh mục dựa trên weight
@@ -53,7 +57,7 @@ for trading_year in range(2019, 2023):
         data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
         data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
             
-            #tính RSI
+        #tính RSI
         data['delta'] = data['close'] - data['close'].shift(1)
         data['gains'] = data['delta'].where(data['delta'] > 0, 0)
         data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
@@ -90,8 +94,8 @@ for trading_year in range(2019, 2023):
         date_performances_df.loc[len(date_performances_df)] = [date, date_performance]
         # print('**')
         
-    print(date_performances_df.sample(20))
-
+    # print(date_performances_df.sample(20))
+    date_performances_df.to_csv(f'Visualization_{trading_year}.csv', index=False)
 
     print('============== After trading =================', trading_year)
     my_portfolio.show_porfolio()
@@ -105,3 +109,7 @@ for trading_year in range(2019, 2023):
     print('Total performance', portfolio_performance*100, '%')
     print('List performance per ticker')
     print(per_per_tick)
+
+
+
+
