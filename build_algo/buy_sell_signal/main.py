@@ -8,9 +8,9 @@ import alphas as alp
 # sys.path.append('D:\DATA ANALYSIS\COMPETITION\ATTACKER\ATTACKER\Attacker-2024\Build Algo\Portfolio Balancing Algo')
 # from Portfolio Balancing Algo import action as act
 
-import sys
-sys.path.append('C:\\Users\\Dell\\Documents\\Python\\Attacker-2024\\build_algo')
-from portfolio_balancing import action as act
+# import sys
+# sys.path.append('C:\\Users\\Dell\\Documents\\Python\\Attacker-2024\\build_algo')
+# from portfolio_balancing import action as act
 
 data = cal.DataProcessor.load_data('VCB')
 # data = data.set_index('time')
@@ -27,13 +27,25 @@ data['bar_type'] = data.apply(cal.DataProcessor.compare_close_prices, axis=1)
 data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
 data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
 data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
+print('hhh',data)
+
+#tính RSI
+data['delta'] = data['close'] - data['close'].shift(1)
+data['gains'] = data['delta'].where(data['delta'] > 0, 0)
+data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
+data['avg_gain'] = data['gains'].rolling(window=14).mean()
+data['avg_loss'] = data['losses'].rolling(window=14).mean()
+data['rs'] = data['avg_gain'] / data['avg_loss']
+data['RSI'] = 1 - (1 / (1 + data['rs']))
+print('---',data)
 
 data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
-data = data[data['signal'] != 'Hold']
-data.reset_index(inplace=True)
+# data = data[data['signal'] != 'Hold']
+# data.reset_index(inplace=True)
 signal_counts = data['signal'].value_counts()
 
 print(data.columns)
+print(data)
 # bat dau trade
 
 print("Số lượng 'Sell':", signal_counts.get('Sell', 0))
