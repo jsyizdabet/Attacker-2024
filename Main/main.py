@@ -23,7 +23,7 @@ ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
 df_percentage = pd.DataFrame({
     'ticker': ticker_list,
     # 'percentage': [0.3513, 0.05, 0.353, 0.1957, 0.05]
-    'percentage': [0.279945, 0.05, 0.05, 0.570055, 0.05]
+    'percentage': [0.05, 0.2646, 0.1976, 0.4378, 0.05]
     # 'percentage': [0.05, 0.062, 0.7628, 0.0752, 0.05]
 })
 
