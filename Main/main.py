@@ -9,24 +9,23 @@ sys.path.append(os.path.join(current_dir, 'Part_2_Algorithm'))
 import pandas as pd
 from StockFiltering import stock_filter_past as stfp
 from Class.portfolioClass import Portfolio
-from Algorithm import calculation as cal
+from Algorithm import calculation as cal, weight as wi
 from Algorithm import alphas as alp
 
 
 
+trading_year = 2020
 ###### Lấy danh sách signals của 5 mã cổ phiếu
-ticker_list = stfp.get_5_ticker(year=2020)['ticker'].to_list()
-print('Chon ra 5 co phieu thanh cong!', ticker_list)
+ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
 
 ###### Thiết lập phần trăm danh mục dựa trên weight
-df_percentage = pd.DataFrame({
-    'ticker': ticker_list,
-    'percentage': [0.3513, 0.05, 0.353, 0.1957, 0.05]
-    # 'percentage': [0.1, 0.1, 0.3, 0.2, 0.3]
-})
+
+df_combined =  wi.get_combined_df(ticker_list, trading_year)
+weight_df = wi.cal_weight(df_combined, ticker_list)
+weight_df.head()
 
 ###### Khởi tạo portfolio
-my_portfolio = Portfolio(starting_cash=1000000000, ticker_list=ticker_list, df_percentage=df_percentage)
+my_portfolio = Portfolio(starting_cash=1000000000, ticker_list=ticker_list, df_percentage=weight_df)
 print('############### Initial Portfolio ###############')
 my_portfolio.show_porfolio()
 
@@ -51,6 +50,15 @@ for ticker in ticker_list:
     data['para'] =abs(data['close'] - data['open'])/(data['high'] - data['low'])
     data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
     data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
+
+    #tính RSI
+    data['delta'] = data['close'] - data['close'].shift(1)
+    data['gains'] = data['delta'].where(data['delta'] > 0, 0)
+    data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
+    data['avg_gain'] = data['gains'].rolling(window=14).mean()
+    data['avg_loss'] = data['losses'].rolling(window=14).mean()
+    data['rs'] = data['avg_gain'] / data['avg_loss']
+    data['RSI'] = 1 - (1 / (1 + data['rs']))
 
     data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
     # data = data[data['signal'] != 'Hold']
