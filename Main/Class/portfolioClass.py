@@ -119,7 +119,7 @@ class Portfolio:
         
         # Kiểm tra cổ phiếu đã có đang nắm giữ hay chưa
         if self.stock_df.at[index_of_ticker, 'holding']:
-            print(f'Co phieu dang nam giu {ticker}, khong the mua')
+            # print(f'Co phieu dang nam giu {ticker}, khong the mua')
             return # Thoát hàm
         
         
@@ -130,7 +130,7 @@ class Portfolio:
             date_difference = (signal_date - last_transaction_date).days
             # print('difference days: ', date_difference)
             if date_difference < 2:
-                print(f'Không thể mua do luật T+ {ticker}')
+                # print(f'Không thể mua do luật T+ {ticker}')
                 return # Thoát hàm
             
         ### Kiểm tra số tiền đang có (không tính pending) có đủ để
@@ -138,20 +138,27 @@ class Portfolio:
         stock_price = signal_row['close']
         tickers_buy_power = self.stock_df.at[index_of_ticker, 'buy_power']
         n_of_tickerToBuy = np.floor(tickers_buy_power/stock_price)
-        estimate_money = n_of_tickerToBuy * stock_price
-        if self.cash < estimate_money:
-            print(f'Khong du tien {ticker}, khong the mua')
-            return # Thoat ham, vi khong du tien
+
+        if n_of_tickerToBuy < 100:
+            return
+        
+        n_ToBuy_100 = (n_of_tickerToBuy - (n_of_tickerToBuy%100))
+
+        estimate_money = n_ToBuy_100 * stock_price
+        # if self.cash < estimate_money:
+        #     # print(f'Khong du tien {ticker}, khong the mua')
+        #     return # Thoat ham, vi khong du tien
         
         # Ghi lai lich su mua
-        self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_tickerToBuy, action=signal)
+        self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_ToBuy_100, action=signal)
         
         # Cap nhat trang thai co phieu trong portfolio
-        self.stock_df.at[index_of_ticker, 'quantity'] = n_of_tickerToBuy
+        self.stock_df.at[index_of_ticker, 'quantity'] = n_ToBuy_100
         self.stock_df.at[index_of_ticker, 'holding'] = True
         self.stock_df.at[index_of_ticker, 'last_date_buy'] = signal_date
         self.cash -= estimate_money
-        print('Thuc hien mua co phieu ', ticker)
+        self.stock_df.at[index_of_ticker, 'buy_power'] -= estimate_money
+        # print('Thuc hien mua co phieu ', ticker)
         
         # There no need to update buy power when a ticker is bought
         # self.update_buy_power()
@@ -159,7 +166,7 @@ class Portfolio:
     def validate_sell(self, signal_row):
         signal = signal_row['signal']
         ticker = signal_row['ticker']
-        
+
         index_of_ticker = self.stock_df[self.stock_df['ticker'] == ticker].index[0]
         # Cập nhật giá của cổ phiếu tại ngày đang xét cho dù có đưa ra giao dịch hay không
         self.stock_df.at[index_of_ticker, 'current_price'] = signal_row['close']
@@ -167,7 +174,7 @@ class Portfolio:
         # Kiểm tra cổ phiếu có đang được nắm giữ hay không
         if not self.stock_df.at[index_of_ticker, 'holding']:
         # [self.stock_df['ticker'] == ticker]].index, 'holding']:
-            print(f'Khong nam giu co phieu nay {ticker}, khong the ban')
+            # print(f'Khong nam giu co phieu nay {ticker}, khong the ban')
             return # Thoát hàm
         
         # Kiểm tra luật T+2
@@ -179,14 +186,14 @@ class Portfolio:
             
             date_difference = (signal_date - last_transaction_date).days
             if (date_difference < 2):
-                print(f'Không thể bán do luật T+ {ticker}')
+                # print(f'Không thể bán do luật T+ {ticker}')
                 return # Thoát hàm
                 
         stock_price = signal_row['close']
         # Ghi lich su ban
         n_of_stock_toSell = self.stock_df.at[index_of_ticker, 'quantity']
         self.add_transaction(time=signal_date, ticker=ticker, price=stock_price, quantity=n_of_stock_toSell, action=signal)
-        print(f'Thuc hien ban co phieu {ticker}')
+        # print(f'Thuc hien ban co phieu {ticker}')
         
         # update portfolio
         self.stock_df.at[index_of_ticker, 'quantity'] = 0 # Ban het
@@ -194,7 +201,7 @@ class Portfolio:
         pending_money = n_of_stock_toSell*stock_price
         self.stock_df.at[index_of_ticker, 'pending_money'] = pending_money
         self.stock_df.at[index_of_ticker, 'last_date_sell'] = signal_date
-        self.stock_df.at[index_of_ticker, 'buy_power'] = pending_money
+        self.stock_df.at[index_of_ticker, 'buy_power'] += pending_money
         # self.update_buy_power()
 
 
@@ -217,7 +224,7 @@ class Portfolio:
         print('==============PORTFOLIO================')
         print('*Money: ', self.cash)
         print('*Stocks\n', self.stock_df)
-        self.show_transaction_history()
+        # self.show_transaction_history()
         print('=======================================')
         
     def show_transaction_history(self):
@@ -231,7 +238,7 @@ class Portfolio:
     def get_pending_money(self):
         return self.stock_df['pending_money'].sum()
     
-    def cal_performance(self):
+    def daily_performance(self):
         return (self.cash + self.calculate_holding_stock_values() + self.get_pending_money())/self.initial_cash
     
     def portfolio_performance(self):
@@ -242,7 +249,8 @@ class Portfolio:
         for ticker, tickerTransSet in self.transaction_list.groupby('ticker'):
             tickerTransSet.sort_values('time', ascending=True)
             tickerTransSet.reset_index(drop=True, inplace=True)
-            
+            # print('****Transaction set****&*')
+            # print(tickerTransSet)
             trading_log = []
             for index, row in tickerTransSet.iterrows():
                 if index == 0:
@@ -252,11 +260,15 @@ class Portfolio:
                     sell_price = row['price']
                     profit = (sell_price - buy_price)/buy_price
                     trading_log.append(profit)
-                    
             
-            # Calculate performance returns
-            perf_index_returns = np.array(trading_log)
-            
+            # Them hieu suat cua co phieu dang nam giu
+            for index, row in self.stock_df.iterrows():
+                if (self.stock_df.loc[index, 'holding']) and (self.stock_df.at[index, 'ticker'] == ticker):
+                    current_price = self.stock_df.loc[index, 'current_price']
+                    last_buy_price = tickerTransSet.at[len(tickerTransSet)-1, 'price']
+                    profit = (current_price-last_buy_price)/last_buy_price
+                    trading_log.append(profit)
+
             # Calculate cumulative return
             cumulative_return = np.prod(np.array(trading_log) + 1) - 1
             

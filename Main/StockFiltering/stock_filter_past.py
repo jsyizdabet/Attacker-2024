@@ -28,7 +28,7 @@ def subtract_weekdays(start_date_str, days_to_subtract):
 
 def basic_filter(df):
     # Lọc theo một vài tiêu chí cơ bản
-    df2 = df[(df['roe'] > 0.2) & (df['earningPerShare'] > 2500) & (df['epsChange'] > 0)]
+    df2 = df[(df['roe'] >= 0.17) & (df['earningPerShare'] > 2500) & (df['bookValuePerShare'] > 10000)]
     df2.reset_index(drop=True, inplace=True)
     return df2
 
@@ -61,6 +61,7 @@ def volume_largerThan_100K(df, year):
         stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date=start_date, end_date=end_date, resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
         mean_volume = stockHisData['volume'].mean()
         df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
+        print("number of sessions: ", len(stockHisData))
 
     # Thêm cột thông tin về trung bình Volume (volume_average) vào dataframe    
     df_merged = pd.merge(df, df_volume[['ticker', 'volume_average']], on='ticker', how='left')
@@ -88,7 +89,6 @@ def stock_filter_past(year):
     df_dropColumns['pe_avg'] = 0
     df_dropColumns.reset_index(drop=True, inplace=True)
 
-    
     filter = pe_smallerThan_pe_avg(df_dropColumns)
     filter = basic_filter(filter)
     result = volume_largerThan_100K(df=filter, year=year)

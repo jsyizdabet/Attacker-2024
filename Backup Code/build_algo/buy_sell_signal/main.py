@@ -29,8 +29,8 @@ data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
 data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
 
 data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
-data = data[data['signal'] != 'Hold']
-data.reset_index(inplace=True)
+# data = data[data['signal'] != 'Hold']
+# data.reset_index(inplace=True)
 signal_counts = data['signal'].value_counts()
 
 print(data.columns)
