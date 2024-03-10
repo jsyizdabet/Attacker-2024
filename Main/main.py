@@ -7,10 +7,10 @@ sys.path.append(os.path.join(current_dir, 'Part_2_Algorithm'))
 
 # ####### Nhập các thư viện và module
 import pandas as pd
-from Part_1_Stock_Filtering import stock_filter_past as stfp
+from StockFiltering import stock_filter_past as stfp
 from Class.portfolioClass import Portfolio
-from Part_2_Algorithm import calculation as cal
-from Part_2_Algorithm import alphas as alp
+from Algorithm import calculation as cal
+from Algorithm import alphas as alp
 
 
 
@@ -79,3 +79,7 @@ my_portfolio.show_porfolio()
 print('=========== Extra information ==============')
 total_cash = my_portfolio.calculate_holding_stock_values() + my_portfolio.cash_prop + my_portfolio.get_pending_money()
 print('*Total revenue: ', total_cash)
+
+
+
+
