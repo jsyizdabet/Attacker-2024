@@ -51,3 +51,17 @@ class DataProcessor:
             return 'middle-third'
         else:
             return 'top-third'
+        
+    def calculate_rsi(data, period=14):
+        delta = data['close'].diff()
+        gains = delta.where(delta > 0, 0)
+        losses = -delta.where(delta < 0, 0)
+
+        avg_gain = gains.rolling(window=period).mean()
+        avg_loss = losses.rolling(window=period).mean()
+
+        rs = avg_gain / avg_loss if avg_loss != 0 else 0
+        rsi = 1 - (1 / (1 + rs))
+        return rsi
+    
+
