@@ -99,15 +99,14 @@ def plot_buy_sell_signal(data, selected_stock):
 filtered_fig = plot_buy_sell_signal(data, selected_stock)
 st.plotly_chart(filtered_fig, use_container_width=True)
 
-#----------------------------------------------
-vnindex = vn.stock_historical_data("VNINDEX", "2018-07-01", "2024-02-01", type="index")
-vnindex['performance_vnindex'] = 100 * (vnindex['close'] - vnindex['close'].iloc[0]) / (vnindex['close'].iloc[0])
-vnindex1 = vnindex[['time', 'performance_vnindex']]
-vnindex1['time'] = pd.to_datetime(vnindex1['time'])
 
-date_performances_df = date_performances_df.rename({'date':'time'})
-date_performances_df['time'] = pd.to_datetime(date_performances_df['time'])
+# vnindex = vn.stock_historical_data("VNINDEX", "2018-07-01", "2024-02-01", type="index")
+# vnindex['performance_vnindex'] = 100 * (vnindex['close'] - vnindex['close'].iloc[0]) / (vnindex['close'].iloc[0])
+# vnindex1 = vnindex[['time', 'performance_vnindex']]
+# vnindex1['time'] = pd.to_datetime(vnindex1['time'])
 
-merge_port_vnindex = pd.merge(date_performances_df, vnindex1, on='time', how="inner")
+# date_performances_df = date_performances_df.rename({'date':'time'})
+# date_performances_df['time'] = pd.to_datetime(date_performances_df['time'])
 
-st.write(merge_port_vnindex)
+# merge_port_vnindex = pd.merge(date_performances_df, vnindex1, on='time', how="inner")
+# st.write(merge_port_vnindex)

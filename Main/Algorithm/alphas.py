@@ -135,17 +135,24 @@ class Alphas():
         else:
             return False
     
-    def get_rsi_signal(data, period=14):
-        data['RSI'] = cal.DataProcessor.calculate_rsi(data, period)
-        if data['RSI'] >= 0.7 :
-            return True
-        elif data['RSI'] <= 0.3:
-            return False   
+    # def get_rsi_signal(data, period=14):
+    #     data['RSI'] = cal.DataProcessor.calculate_rsi(data, period)
+    #     if data['RSI'] >= 0.7 :
+    #         return True
+    #     elif data['RSI'] <= 0.3:
+    #         return False   
 
+    # def determine_signal(row):
+    #     if (Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row))& Alphas.get_rsi_signal(row):
+    #         return 'Sell'
+    #     elif (Alphas.is_power_A_signal(row) or Alphas.is_power_B_signal(row) or Alphas.is_reverse_up_trust_signal(row) or Alphas.is_stopped_volume_signal(row))& Alphas.get_rsi_signal(row):
+    #         return 'Buy'
+    #     else:
+            # return 'Hold'
     def determine_signal(row):
-        if (Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row))& Alphas.get_rsi_signal(row):
+        if (Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row)):
             return 'Sell'
-        elif (Alphas.is_power_A_signal(row) or Alphas.is_power_B_signal(row) or Alphas.is_reverse_up_trust_signal(row) or Alphas.is_stopped_volume_signal(row))& Alphas.get_rsi_signal(row):
+        elif (Alphas.is_power_A_signal(row) or Alphas.is_power_B_signal(row) or Alphas.is_reverse_up_trust_signal(row) or Alphas.is_stopped_volume_signal(row)):
             return 'Buy'
         else:
             return 'Hold'
