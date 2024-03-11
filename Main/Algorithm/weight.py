@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import cvxpy as cp
 from datetime import datetime, timedelta
+import warnings
 
 def subtract_weekdays(start_date_str, days_to_subtract):
     # Chuyển đổi chuỗi ngày đầu vào thành đối tượng datetime
@@ -47,9 +48,12 @@ def get_combined_df(list_stock, trading_year):
 def covariance_matrix(corr_matrix, volatility):
     n = len(volatility)
     cov_matrix = np.zeros((n, n))
-    for i in range(n):
-        for j in range(n):
-            cov_matrix[i, j] = corr_matrix.iloc[i, j] * volatility[i] * volatility[j]  # Changed corr_matrix[i, j] to corr_matrix.iloc[i, j]
+    
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        for i in range(n):
+            for j in range(n):
+                cov_matrix[i, j] = corr_matrix.iloc[i, j] * volatility[i] * volatility[j]  # Changed corr_matrix[i, j] to corr_matrix.iloc[i, j]
     return cov_matrix
 
 def objective(x, cov_matrix):
@@ -75,7 +79,8 @@ def cal_weight(df_combined, list_stock):
     ]
     problem = cp.Problem(objective_func, constraints)
     weight_df = problem.solve()
-    weight_df = pd.DataFrame({'ticker': list_stock,'percentage': x.value}).round(4)
+    weight_df = pd.DataFrame({'ticker': list_stock,'weight': x.value}).round(4)
+    weight_df = weight_df.map(lambda x: 0.00 if x == -0.00 else x)
     return weight_df
 
 

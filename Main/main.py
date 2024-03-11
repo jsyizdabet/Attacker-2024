@@ -7,35 +7,33 @@ sys.path.append(os.path.join(current_dir, 'Algorithm'))
 
 # ####### Nhập các thư viện và module
 import pandas as pd
+import warnings
 from StockFiltering import stock_filter_past as stfp
 from Class.portfolioClass import Portfolio
-
-from Algorithm import calculation as cal, weight as wi
+from Algorithm import calculation as cal , weight as wi
 from Algorithm import alphas as alp
-
 
 
 
 
 for trading_year in range(2019, 2022):
 
+
     ###### Lấy danh sách signals của 5 mã cổ phiếu
     ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
-    
-
 
     ###### Thiết lập phần trăm danh mục dựa trên weight
-
     df_combined =  wi.get_combined_df(ticker_list, trading_year)
     weight_df = wi.cal_weight(df_combined, ticker_list)
     weight_df.head()
-
+    
     ###### Khởi tạo portfolio
     my_portfolio = Portfolio(starting_cash=1000000000, ticker_list=ticker_list, df_percentage=weight_df)
-    print('############### Initial Portfolio ###############')
+    print("### Trading year: ", trading_year)
+    print('Initial Portfolio')
     my_portfolio.show_porfolio()
 
-    ###### Tạo dataframe tín hiệu
+    ###### Tạo dataframe tín hiệu ######
     signal_df = pd.DataFrame(columns=['index', 'time', 'open', 'high', 'low', 'close', 'volume', 'ticker',
                                     'on-balance_volume', 'OBV_label', 'close_t_minus_1', 'bar_type', 'para',
                                     'label_spread', 'close_bar_label', 'signal'])
@@ -58,23 +56,14 @@ for trading_year in range(2019, 2022):
         data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
             
 
-        #tính RSI
-        data['delta'] = data['close'] - data['close'].shift(1)
-        data['gains'] = data['delta'].where(data['delta'] > 0, 0)
-        data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
-        data['avg_gain'] = data['gains'].rolling(window=14).mean()
-        data['avg_loss'] = data['losses'].rolling(window=14).mean()
-        data['rs'] = data['avg_gain'] / data['avg_loss']
-        data['RSI'] = 1 - (1 / (1 + data['rs']))
-
         data['signal'] = data.apply(alp.Alphas.determine_signal, axis=1)
         # data = data[data['signal'] != 'Hold']
         data.reset_index(inplace=True)
-
-        signal_df = pd.concat([signal_df, data], ignore_index=True)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", category=FutureWarning)
+            signal_df = pd.concat([signal_df, data], ignore_index=True)
     signal_df.sort_values(by='time')
-
-    # print('Danh sách tín hiệu dài ', len(signal_df))
+    ##########
 
     ####### Thực hiện xét tín hiệu để giao dịch
     date_performances_df = pd.DataFrame(columns=['date', 'performance']);
@@ -86,20 +75,14 @@ for trading_year in range(2019, 2022):
         date_performances_df.loc[len(date_performances_df)] = [date, date_performance]
         # print('**')
         
-    # print(date_performances_df.sample(20))
-    # date_performances_df.to_csv(f'Visualization_{trading_year}.csv', index=False)
 
-    print('============== After trading =================', trading_year)
+
+    print('============== After trading ================')
     my_portfolio.show_porfolio()
-    print('=========== Extra information ==============')
-    total_cash = my_portfolio.calculate_holding_stock_values() + my_portfolio.cash_prop + my_portfolio.get_pending_money()
-    print('*Total revenue: ', total_cash)
-    print('holding value',my_portfolio.calculate_holding_stock_values())
-    print('cash',my_portfolio.cash_prop)
-    print('pending money', my_portfolio.get_pending_money())
+    
     portfolio_performance, per_per_tick = my_portfolio.portfolio_performance()
-    print('Total performance', portfolio_performance*100, '%')
-    print('List performance per ticker')
+    print('*Total performance', round(portfolio_performance*100, 2), '%')
+    print('*List performance per ticker')
     print(per_per_tick)
 
 

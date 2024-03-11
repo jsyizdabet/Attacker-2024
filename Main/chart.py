@@ -8,8 +8,9 @@ import pandas as pd
 import os
 import sys
 current_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(os.path.join(current_dir, 'Part_1_Stock_Filtering'))
-sys.path.append(os.path.join(current_dir, 'Part_2_Algorithm'))
+sys.path.append(os.path.join(current_dir, 'StockFiltering'))
+sys.path.append(os.path.join(current_dir, 'Algorithm'))
+sys.path.append(os.path.join(current_dir, 'Chart'))
 
 # ####### Nhập các thư viện và module
 from StockFiltering import stock_filter_past as stfp
