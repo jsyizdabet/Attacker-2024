@@ -14,7 +14,7 @@ from Algorithm import calculation as cal , weight as wi
 from Algorithm import alphas as alp
 
 
-for trading_year in range(2019, 2023):
+for trading_year in range(2019, 2020):
     
     ###### Lấy danh sách signals của 5 mã cổ phiếu
     ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
