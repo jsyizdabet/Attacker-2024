@@ -73,7 +73,7 @@ def cal_weight(df_combined, list_stock):
     objective_func = cp.Minimize(cp.quad_form(x, cov_matrix))
     constraints = [
         cp.sum(x) == 1,  # a + b + c + d + e = 1
-        x >= 0.00,  # a, b, c, d, e >= 0.05
+        x >= 0.05,  # a, b, c, d, e >= 0.05
         # cp.matmul(returns_20.values, x) >= 0,  # Lớn hơn hoặc bằng 0
         # cp.matmul(returns_60.values, x) >= 0  # Lớn hơn hoặc bằng 0
     ]
