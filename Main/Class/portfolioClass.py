@@ -19,7 +19,7 @@ class Portfolio:
         ticker_list_len = len(ticker_list) 
         data = {
             'ticker': ticker_list,
-            'percentage': [0.0]*ticker_list_len,
+            'percentage': ['']*ticker_list_len,
             'weight': [0.0]*ticker_list_len,
             'buy_power': [0]*ticker_list_len,
             'holding': [False]*ticker_list_len,
@@ -33,7 +33,8 @@ class Portfolio:
         return stock_df
     
     def update_percentage(self, df_percentage):
-        self.stock_df['percentage'] = df_percentage['percentage'].values
+        self.stock_df['percentage'] = (df_percentage['weight'].values * 100)
+        self.stock_df['weight'] = df_percentage['weight'].values
         
     
     def create_transaction_list(self):
@@ -49,7 +50,7 @@ class Portfolio:
     
     def init_buy_power(self):
         for index, it in self.stock_df.iterrows():
-            ticker_percentage = self.stock_df.loc[index]['percentage']
+            ticker_percentage = self.stock_df.loc[index]['weight']
             new_buy_power = self.cash*ticker_percentage
             # print(new_buy_power)
             self.stock_df.at[index, 'buy_power'] = new_buy_power
@@ -91,7 +92,7 @@ class Portfolio:
         
         total_buy_power = pending_money + holding_stock_value + self.cash
         for index, it in self.stock_df.iterrows():
-            ticker_percentage = self.stock_df.loc[index]['percentage']
+            ticker_percentage = self.stock_df.loc[index]['weight']
             new_buy_power = total_buy_power*ticker_percentage
             self.stock_df.at[index, 'buy_power'] = new_buy_power
     '''
@@ -222,9 +223,15 @@ class Portfolio:
     
     def show_porfolio(self):
         print('==============PORTFOLIO================')
-        print('*Money: ', self.cash)
+        
         print('*Stocks\n', self.stock_df)
         # self.show_transaction_history()
+        total_revenue = self.calculate_holding_stock_values() + self.cash_prop + self.get_pending_money()
+        print('*Total revenue: ', total_revenue)
+        print('*Holding value',self.calculate_holding_stock_values())
+        print('*Cash',self.cash)
+        print('*Pending money', self.get_pending_money())
+    
         print('=======================================')
         
     def show_transaction_history(self):
@@ -249,7 +256,7 @@ class Portfolio:
         for ticker, tickerTransSet in self.transaction_list.groupby('ticker'):
             tickerTransSet.sort_values('time', ascending=True)
             tickerTransSet.reset_index(drop=True, inplace=True)
-            # print('****Transaction set****&*')
+            # print('****Transaction set*****')
             # print(tickerTransSet)
             trading_log = []
             for index, row in tickerTransSet.iterrows():
@@ -270,14 +277,16 @@ class Portfolio:
                     trading_log.append(profit)
 
             # Calculate cumulative return
-            cumulative_return = np.prod(np.array(trading_log) + 1) - 1
+            cumulative_return = 0
+            if len(tickerTransSet) > 0:
+                cumulative_return = np.prod(np.array(trading_log) + 1) - 1
             
             # performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, ticker_performance]
             performance_per_ticker.loc[len(performance_per_ticker)] = [ticker, cumulative_return]
             
             # Tinh hieu suat toan danh muc
-            df_merge = pd.merge(performance_per_ticker, self.stock_df[['ticker', 'percentage']], on='ticker', how='left')
-            portfolio_performance = (df_merge['percentage'] * df_merge['performance']).sum()
+            df_merge = pd.merge(performance_per_ticker, self.stock_df[['ticker', 'weight']], on='ticker', how='left')
+            portfolio_performance = (df_merge['weight'] * df_merge['performance']).sum()
         return portfolio_performance, performance_per_ticker 
     
     # Getter cho thuộc tính

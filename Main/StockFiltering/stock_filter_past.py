@@ -3,6 +3,7 @@ import vnstock as vnst
 import pandas as pd
 import os
 from datetime import datetime, timedelta
+import warnings
 
 '''
     Utility functions
@@ -29,7 +30,6 @@ def subtract_weekdays(start_date_str, days_to_subtract):
 def basic_filter(df):
     # Lọc theo một vài tiêu chí cơ bản
     df2 = df[(df['roe'] >= 0.17) & (df['earningPerShare'] > 2500) & (df['bookValuePerShare'] > 10000)]
-    # df3 = df2[(df['equityOnTotalAsset'] > 0.2) & (df['equityOnTotalAsset'] < 0.8)]
     df2.reset_index(drop=True, inplace=True)
     return df2
 
@@ -39,30 +39,33 @@ def pe_smallerThan_pe_avg(df):
         avg_pe = ('priceToEarning', 'mean')
     )
 
-    # Thêm giá trị trung bình P/E theo ngành cho cột 'pe_avg' của dataframe
-    for index, co in df.iterrows():
-        # 'co' is a tuple, so we can get the industry name like this
-        industryName = co[11] #column index = 11
-        # get the pe average value
-        df.at[index, 'pe_avg'] =  df_pe_byIndustry.loc[industryName][0]
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        # Thêm giá trị trung bình P/E theo ngành cho cột 'pe_avg' của dataframe
+        for index, co in df.iterrows():
+            # 'co' is a tuple, so we can get the industry name like this
+            industryName = co[11] #column index = 11
+            # get the pe average value
+            df.at[index, 'pe_avg'] =  df_pe_byIndustry.loc[industryName][0]
 
     result = df[df['priceToEarning'] < df['pe_avg']]
     return result
 
 def volume_largerThan_100K(df, year):
     # ------ Khối lượng trung bình 20 phiên gần nhất của từng cổ phiếu: Volume trung bình > 100 ngàn
-
+    
     # Tạo một df chứa ticker và trung bình Volume của 20 phiên gần nhất
     df_volume = pd.DataFrame(columns=['ticker','volume_average', 'numSession'])
     end_date = f'{year}-07-01'
     start_date = subtract_weekdays(end_date, 20)
     
-    for index, co in df.iterrows():
-        # Tính tổng volume của 20 phiên gần nhất
-        stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date=start_date, end_date=end_date, resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
-        mean_volume = stockHisData['volume'].mean()
-        df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
-        print("number of sessions: ", len(stockHisData))
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=FutureWarning)
+        for index, co in df.iterrows():
+            # Tính tổng volume của 20 phiên gần nhất
+            stockHisData = vnst.stock_historical_data(symbol=co['ticker'], start_date=start_date, end_date=end_date, resolution="1D", type="stock", beautify=True, decor=False, source='DNSE')        
+            mean_volume = stockHisData['volume'].mean()
+            df_volume.loc[len(df_volume)] = [co[0], mean_volume, len(stockHisData)]
 
     # Thêm cột thông tin về trung bình Volume (volume_average) vào dataframe    
     df_merged = pd.merge(df, df_volume[['ticker', 'volume_average']], on='ticker', how='left')
@@ -86,13 +89,18 @@ def stock_filter_past(year):
     df.drop_duplicates(subset='ticker', keep='first', inplace=True)
     df_dropColumns = df[['ticker', 'quarter', 'year', 'priceToEarning', 'priceToBook', 'roe',
         'roa', 'earningPerShare', 'bookValuePerShare','epsChange','bookValuePerShareChange', 'industry', 'organName', 'equityOnTotalAsset']]
-    # Thêm cột giá trị P/E trung bình cho dataframe
-    df_dropColumns['pe_avg'] = 0
-    df_dropColumns.reset_index(drop=True, inplace=True)
-
+    
+    with warnings.catch_warnings():   
+        warnings.simplefilter("ignore", category=pd.errors.SettingWithCopyWarning)
+        # Thêm cột giá trị P/E trung bình cho dataframe
+        df_dropColumns['pe_avg'] = 0
+        df_dropColumns.reset_index(drop=True, inplace=True)
+    
+    print("Filtering data...")
     filter = pe_smallerThan_pe_avg(df_dropColumns)
     filter = basic_filter(filter)
     result = volume_largerThan_100K(df=filter, year=year)
+    print("Complete filter data.")
     return result
 
 def read_df5_local():
@@ -103,5 +111,4 @@ def read_df5_local():
 
 def get_5_ticker(year):
     five_ticker = stock_filter_past(year=year).sort_values('priceToEarning', ascending=False).head(5)
-    five_ticker.to_csv('five_ticker_2019.csv')
     return five_ticker
