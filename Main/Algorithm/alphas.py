@@ -136,10 +136,10 @@ class Alphas():
             return False
 
     def get_rsi_signal(data):
-        if data['RSI'] >= 0.6:
-            return True
-        elif data['RSI'] <= 0.4:
-            return False   
+        if data['RSI'] > 0.7:
+            return False
+        elif data['RSI'] < 0.3:
+            return True   
 
     def determine_signal(row):
         if (Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row)) and (Alphas.get_rsi_signal(row)==  True):
