@@ -14,8 +14,7 @@ Nhóm: **Stack Overflow**
 - Truy cập nhánh 'report', vào thư mục Report và mở file Trading_Summary.ipynb đề xem kết quả sau khi dùng bộ lọc và mô phỏng thuật toán giao dịch trong 3 kì giao dịch có thời hạn mỗi kì 1 năm.
 
 ### Trực quan hóa dữ liệu từ các thuật toán
-- Truy cập link để xem biểu đồ trực quan
-https://stackoverflow-attacker2024.streamlit.app/?fbclid=IwAR0f587tNfuu_mtuR2c3UWY8SdFnIb6WZjUeBXu-bhCnspMgD17m4WE7KF8
+- Truy cập link để xem biểu đồ trực quan <a href="https://stackoverflow-attacker2024.streamlit.app/?fbclid=IwAR0f587tNfuu_mtuR2c3UWY8SdFnIb6WZjUeBXu-bhCnspMgD17m4WE7KF8">Click me :></a>
 - Nhóm sử dụng streamlit để trực quan hóa biến động giá trong suốt kì giao dịch của các mã cổ phiếu được chọn từ bộ lọc.
 - Đồng thời vẽ các điểm mua/bán dựa theo tín hiệu của thuật toán do nhóm xây dựng.
 - Hơn nữa còn có thông tin về phần trăm danh mục của các mã cố phiếu, hiệu suất theo ngày so với VN-INDEX khi sử dụng điểm mua/bán do thuật toán sinh ra.
