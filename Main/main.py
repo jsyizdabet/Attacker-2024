@@ -17,7 +17,7 @@ from Algorithm import alphas as alp
 
 
 
-for trading_year in range(2020, 2021):
+for trading_year in range(2019, 2022):
 
     ###### Lấy danh sách signals của 5 mã cổ phiếu
     ticker_list = stfp.get_5_ticker(year=trading_year-1)['ticker'].to_list()
@@ -57,14 +57,14 @@ for trading_year in range(2020, 2021):
         data['label_spread'] = data['para'].apply(cal.DataProcessor.label_spread)
         data['close_bar_label'] = data.apply(cal.DataProcessor.label_close_bar, axis=1)
             
-        #tính RSI
-        data['delta'] = data['close'] - data['close'].shift(1)
-        data['gains'] = data['delta'].where(data['delta'] > 0, 0)
-        data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
-        data['avg_gain'] = data['gains'].rolling(window=14).mean()
-        data['avg_loss'] = data['losses'].rolling(window=14).mean()
-        data['rs'] = data['avg_gain'] / data['avg_loss']
-        data['RSI'] = 1 - (1 / (1 + data['rs']))
+        # #tính RSI
+        # data['delta'] = data['close'] - data['close'].shift(1)
+        # data['gains'] = data['delta'].where(data['delta'] > 0, 0)
+        # data['losses'] = -data['delta'].where(data['delta'] < 0, 0)
+        # data['avg_gain'] = data['gains'].rolling(window=14).mean()
+        # data['avg_loss'] = data['losses'].rolling(window=14).mean()
+        # data['rs'] = data['avg_gain'] / data['avg_loss']
+        # data['RSI'] = 1 - (1 / (1 + data['rs']))
 
         #tính RSI
         data['delta'] = data['close'] - data['close'].shift(1)
@@ -95,7 +95,7 @@ for trading_year in range(2020, 2021):
         # print('**')
         
     # print(date_performances_df.sample(20))
-    date_performances_df.to_csv(f'Visualization_{trading_year}.csv', index=False)
+    # date_performances_df.to_csv(f'Visualization_{trading_year}.csv', index=False)
 
     print('============== After trading =================', trading_year)
     my_portfolio.show_porfolio()
