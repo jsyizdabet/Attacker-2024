@@ -1,4 +1,5 @@
-# Cuộc thi FinTech -  Attacker 2024 - Algorithmic Analysis
+# Cuộc thi FinTech -  Attacker 2024 - Algorithmic Analysis<br>
+Nhóm: **Stack Overflow**
 
 ![title-image](https://picsum.photos/1080/450)
 
