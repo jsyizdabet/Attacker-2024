@@ -141,6 +141,25 @@ class Alphas():
         elif data['RSI'] < 0.3:
             return True   
 
+    def ssma(data, period, sensitivity):
+    sma = np.mean(data[:period])  # Tính toán moving average ban đầu
+    ssma_values = [sma]  # Danh sách để lưu trữ giá trị SSMA
+
+    for i in range(period, len(data)):
+        # Tính toán độ nhạy cảm (sensitivity factor)
+        sensitivity_factor = (i / period) ** sensitivity
+        
+        # Cập nhật giá trị SSMA bằng cách áp dụng độ nhạy cảm vào moving average
+        ssma = sma + sensitivity_factor * (data[i] - sma)
+        
+        # Thêm giá trị SSMA vào danh sách
+        ssma_values.append(ssma)
+        
+        # Cập nhật giá trị moving average cho vòng lặp tiếp theo
+        sma = ssma
+
+    return ssma_values
+
     def determine_signal(row):
         if (Alphas.is_weakness_a_signal(row) or Alphas.is_no_demand_signal(row) or Alphas.is_up_trust_signal(row) or Alphas.is_stop_volume_signal(row)) and (Alphas.get_rsi_signal(row)==  True):
             return 'Sell'
