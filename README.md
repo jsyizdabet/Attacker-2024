@@ -3,6 +3,11 @@ Nhóm: **Stack Overflow**
 
 ![title-image](https://picsum.photos/1080/450)
 
+**UPDATE VÒNG CHUNG KẾT**
+Sử dụng chiến lược đầu tư ngắn hạn:
+- Chiến lược giao dịch trên Trading View: [MACD with Magic Trend](https://in.tradingview.com/script/c3jUSRbK-Moving-Average-Convergence-Divergence-with-Magic-Trend/)
+- Triển khai trên Streamlit: [Strategy](https://stack-overflow-attacker2024.streamlit.app/)
+
 ## Tổng quan
 
  VÒNG 2 - ALGORITHMIC ODYSSEY
